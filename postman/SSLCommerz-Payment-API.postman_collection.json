@@ -1,0 +1,376 @@
+{
+    "info": {
+        "_postman_id": "b9-ecom-sslcommerz-payment-api",
+        "name": "B9 Ecom - SSLCommerz Payment API",
+        "description": "API collection for testing SSLCommerz payment integration in the B9 Ecom shop.\n\n## Setup\n1. Start the Laravel app: `php artisan serve`\n2. Set `base_url` to your app URL (default: http://localhost:8000)\n3. Ensure `.env` has SSLCommerz sandbox credentials\n4. Create an order first (via admin or factory), then use its `order_id` to initiate payment\n\n## Flow\n1. **Initiate Payment** — creates a payment record and returns `gateway_url`\n2. Open `gateway_url` in a browser to complete sandbox payment\n3. SSLCommerz will POST to success/failure/cancel/ipn callbacks automatically\n4. Use **Show Payment** to verify final status",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "variable": [
+        {
+            "key": "base_url",
+            "value": "http://localhost:8000"
+        },
+        {
+            "key": "order_id",
+            "value": "1"
+        },
+        {
+            "key": "payment_id",
+            "value": "1"
+        },
+        {
+            "key": "transaction_id",
+            "value": "PAY-SE-2026-000001-ABC12345"
+        },
+        {
+            "key": "refund_ref_id",
+            "value": ""
+        }
+    ],
+    "item": [
+        {
+            "name": "Payments",
+            "item": [
+                {
+                    "name": "Initiate Payment",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "if (pm.response.code === 201) {",
+                                    "    const json = pm.response.json();",
+                                    "    pm.collectionVariables.set('payment_id', json.data.id);",
+                                    "    pm.collectionVariables.set('transaction_id', json.data.transaction_id);",
+                                    "    console.log('Gateway URL:', json.data.gateway_url);",
+                                    "}"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"order_id\": {{order_id}}\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/payments/initiate",
+                            "host": ["{{base_url}}"],
+                            "path": ["api", "payments", "initiate"]
+                        },
+                        "description": "Creates a payment record for the given order and returns the SSLCommerz gateway URL. Open the `gateway_url` in a browser to complete sandbox payment."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Show Payment",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/payments/{{payment_id}}",
+                            "host": ["{{base_url}}"],
+                            "path": ["api", "payments", "{{payment_id}}"]
+                        },
+                        "description": "Returns payment details including status, transaction id, and linked order payment status."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Refund Payment",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"amount\": 100.00,\n    \"reason\": \"Customer requested refund\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/payments/{{payment_id}}/refund",
+                            "host": ["{{base_url}}"],
+                            "path": ["api", "payments", "{{payment_id}}", "refund"]
+                        },
+                        "description": "Submit a refund request for a successful payment. Requires `bank_tran_id` from a completed payment."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Check Refund Status",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/payments/refund-status?refund_ref_id={{refund_ref_id}}",
+                            "host": ["{{base_url}}"],
+                            "path": ["api", "payments", "refund-status"],
+                            "query": [
+                                {
+                                    "key": "refund_ref_id",
+                                    "value": "{{refund_ref_id}}"
+                                }
+                            ]
+                        },
+                        "description": "Check the status of a refund using the refund reference id returned from the refund endpoint."
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "SSLCommerz Callbacks",
+            "description": "These endpoints are called by SSLCommerz after payment. For manual testing, use sample payloads. In production, SSLCommerz sends signed POST requests automatically.",
+            "item": [
+                {
+                    "name": "Success Callback (manual test)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/x-www-form-urlencoded"
+                            }
+                        ],
+                        "body": {
+                            "mode": "urlencoded",
+                            "urlencoded": [
+                                {
+                                    "key": "tran_id",
+                                    "value": "{{transaction_id}}",
+                                    "description": "Must match an existing payment transaction_id"
+                                },
+                                {
+                                    "key": "val_id",
+                                    "value": "2407051234567890",
+                                    "description": "Validation id from SSLCommerz"
+                                },
+                                {
+                                    "key": "amount",
+                                    "value": "1250.00"
+                                },
+                                {
+                                    "key": "card_type",
+                                    "value": "VISA-Dutch Bangla"
+                                },
+                                {
+                                    "key": "bank_tran_id",
+                                    "value": "BK1234567890"
+                                },
+                                {
+                                    "key": "store_amount",
+                                    "value": "1212.50"
+                                },
+                                {
+                                    "key": "status",
+                                    "value": "VALID"
+                                },
+                                {
+                                    "key": "verify_sign",
+                                    "value": "REPLACE_WITH_VALID_SIGN",
+                                    "description": "Must be a valid SSLCommerz signature"
+                                },
+                                {
+                                    "key": "verify_key",
+                                    "value": "amount,bank_tran_id,card_type,currency,status,store_amount,tran_id,val_id"
+                                }
+                            ]
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/payments/sslcommerz/success",
+                            "host": ["{{base_url}}"],
+                            "path": ["api", "payments", "sslcommerz", "success"]
+                        },
+                        "description": "Simulates SSLCommerz success callback. Requires valid hash signature from SSLCommerz — use real callback data after completing a sandbox payment."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Failure Callback (manual test)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/x-www-form-urlencoded"
+                            }
+                        ],
+                        "body": {
+                            "mode": "urlencoded",
+                            "urlencoded": [
+                                {
+                                    "key": "tran_id",
+                                    "value": "{{transaction_id}}"
+                                },
+                                {
+                                    "key": "status",
+                                    "value": "FAILED"
+                                },
+                                {
+                                    "key": "verify_sign",
+                                    "value": "REPLACE_WITH_VALID_SIGN"
+                                },
+                                {
+                                    "key": "verify_key",
+                                    "value": "amount,status,tran_id"
+                                }
+                            ]
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/payments/sslcommerz/failure",
+                            "host": ["{{base_url}}"],
+                            "path": ["api", "payments", "sslcommerz", "failure"]
+                        },
+                        "description": "Simulates SSLCommerz failure callback."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Cancel Callback (manual test)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/x-www-form-urlencoded"
+                            }
+                        ],
+                        "body": {
+                            "mode": "urlencoded",
+                            "urlencoded": [
+                                {
+                                    "key": "tran_id",
+                                    "value": "{{transaction_id}}"
+                                },
+                                {
+                                    "key": "status",
+                                    "value": "CANCELLED"
+                                },
+                                {
+                                    "key": "verify_sign",
+                                    "value": "REPLACE_WITH_VALID_SIGN"
+                                },
+                                {
+                                    "key": "verify_key",
+                                    "value": "amount,status,tran_id"
+                                }
+                            ]
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/payments/sslcommerz/cancel",
+                            "host": ["{{base_url}}"],
+                            "path": ["api", "payments", "sslcommerz", "cancel"]
+                        },
+                        "description": "Simulates SSLCommerz cancel callback when user cancels on the gateway page."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "IPN Callback (manual test)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/x-www-form-urlencoded"
+                            }
+                        ],
+                        "body": {
+                            "mode": "urlencoded",
+                            "urlencoded": [
+                                {
+                                    "key": "tran_id",
+                                    "value": "{{transaction_id}}"
+                                },
+                                {
+                                    "key": "val_id",
+                                    "value": "2407051234567890"
+                                },
+                                {
+                                    "key": "amount",
+                                    "value": "1250.00"
+                                },
+                                {
+                                    "key": "card_type",
+                                    "value": "VISA-Dutch Bangla"
+                                },
+                                {
+                                    "key": "bank_tran_id",
+                                    "value": "BK1234567890"
+                                },
+                                {
+                                    "key": "store_amount",
+                                    "value": "1212.50"
+                                },
+                                {
+                                    "key": "status",
+                                    "value": "VALID"
+                                },
+                                {
+                                    "key": "verify_sign",
+                                    "value": "REPLACE_WITH_VALID_SIGN"
+                                },
+                                {
+                                    "key": "verify_key",
+                                    "value": "amount,bank_tran_id,card_type,currency,status,store_amount,tran_id,val_id"
+                                }
+                            ]
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/payments/sslcommerz/ipn",
+                            "host": ["{{base_url}}"],
+                            "path": ["api", "payments", "sslcommerz", "ipn"]
+                        },
+                        "description": "Instant Payment Notification — SSLCommerz sends this in the background after payment. Same validation as success callback."
+                    },
+                    "response": []
+                }
+            ]
+        }
+    ]
+}

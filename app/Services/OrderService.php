@@ -1,0 +1,224 @@
+<?php
+
+namespace App\Services;
+
+use App\Models\Order;
+use App\Models\OrderStatusHistory;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
+use RuntimeException;
+
+class OrderService
+{
+    public function __construct(private readonly CartService $cartService) {}
+
+    /**
+     * Calculate the delivery charge for a given district.
+     */
+    public function deliveryChargeForDistrict(string $district): float
+    {
+        $delivery = config('shop.delivery');
+
+        return $district === $delivery['dhaka_district']
+            ? (float) $delivery['inside_dhaka']
+            : (float) $delivery['outside_dhaka'];
+    }
+
+    /**
+     * Place a Cash on Delivery order from the current cart.
+     *
+     * @param  array{
+     *     customer_name: string,
+     *     phone: string,
+     *     email: string,
+     *     district: string,
+     *     area: string,
+     *     address: string,
+     *     notes?: string|null,
+     * }  $shipping
+     *
+     * @throws ValidationException
+     */
+    public function placeCodOrder(array $shipping): Order
+    {
+        return $this->placeOrder($shipping, 'cod', 'Order placed via Cash on Delivery.');
+    }
+
+    /**
+     * Place an SSLCommerz order from the current cart.
+     *
+     * @param  array{
+     *     customer_name: string,
+     *     phone: string,
+     *     email: string,
+     *     district: string,
+     *     area: string,
+     *     address: string,
+     *     notes?: string|null,
+     * }  $shipping
+     *
+     * @throws ValidationException
+     */
+    public function placeSslcommerzOrder(array $shipping): Order
+    {
+        return $this->placeOrder($shipping, 'sslcommerz', 'Order placed via SSLCommerz. Awaiting online payment.');
+    }
+
+    /**
+     * @param  array{
+     *     customer_name: string,
+     *     phone: string,
+     *     email: string,
+     *     district: string,
+     *     area: string,
+     *     address: string,
+     *     notes?: string|null,
+     * }  $shipping
+     *
+     * @throws ValidationException
+     */
+    private function placeOrder(array $shipping, string $paymentMethod, string $statusNote): Order
+    {
+        $items = $this->cartService->items();
+
+        if ($items === []) {
+            throw ValidationException::withMessages([
+                'cart' => 'Your cart is empty.',
+            ]);
+        }
+
+        $outOfStock = collect($items)->first(fn (array $item): bool => ! $item['inStock']);
+
+        if ($outOfStock !== null) {
+            throw ValidationException::withMessages([
+                'cart' => "{$outOfStock['name']} is no longer available.",
+            ]);
+        }
+
+        $subtotal = collect($items)->sum(
+            fn (array $item): float => $item['price'] * $item['qty'],
+        );
+
+        $deliveryCharge = $this->deliveryChargeForDistrict($shipping['district']);
+        $total = $subtotal + $deliveryCharge;
+
+        return DB::transaction(function () use ($shipping, $items, $subtotal, $deliveryCharge, $total, $paymentMethod, $statusNote): Order {
+            $order = Order::create([
+                'order_number' => $this->generateOrderNumber(),
+                'user_id' => auth()->id(),
+                'customer_name' => $shipping['customer_name'],
+                'phone' => $shipping['phone'],
+                'email' => $shipping['email'],
+                'district' => $shipping['district'],
+                'area' => $shipping['area'],
+                'address' => $shipping['address'],
+                'notes' => $shipping['notes'] ?? null,
+                'subtotal' => $subtotal,
+                'delivery_charge' => $deliveryCharge,
+                'total' => $total,
+                'payment_method' => $paymentMethod,
+                'payment_status' => 'pending',
+                'status' => 'pending',
+                'placed_at' => now(),
+            ]);
+
+            foreach ($items as $item) {
+                $lineTotal = $item['price'] * $item['qty'];
+
+                $order->items()->create([
+                    'product_id' => $item['productId'],
+                    'product_name' => $item['name'],
+                    'unit_price' => $item['price'],
+                    'quantity' => $item['qty'],
+                    'line_total' => $lineTotal,
+                ]);
+            }
+
+            OrderStatusHistory::create([
+                'order_id' => $order->id,
+                'status' => 'pending',
+                'note' => $statusNote,
+                'changed_by' => auth()->id(),
+            ]);
+
+            $this->cartService->clear();
+
+            return $order;
+        });
+    }
+
+    /**
+     * Update order status and payment status from the admin panel.
+     *
+     * @param  array{
+     *     status: string,
+     *     payment_status: string,
+     *     note?: string|null,
+     * }  $data
+     */
+    public function updateFromAdmin(Order $order, array $data, ?int $changedBy = null): Order
+    {
+        $statusChanged = $order->status !== $data['status'];
+        $paymentStatusChanged = $order->payment_status !== $data['payment_status'];
+        $note = filled($data['note'] ?? null) ? (string) $data['note'] : null;
+
+        if (! $statusChanged && ! $paymentStatusChanged && $note === null) {
+            return $order;
+        }
+
+        return DB::transaction(function () use ($order, $data, $changedBy, $statusChanged, $paymentStatusChanged, $note): Order {
+            $order->update([
+                'status' => $data['status'],
+                'payment_status' => $data['payment_status'],
+            ]);
+
+            if ($statusChanged || $paymentStatusChanged || $note !== null) {
+                OrderStatusHistory::create([
+                    'order_id' => $order->id,
+                    'status' => $data['status'],
+                    'note' => $note ?? $this->adminStatusChangeNote($statusChanged, $paymentStatusChanged, $data),
+                    'changed_by' => $changedBy,
+                    'created_at' => now(),
+                ]);
+            }
+
+            return $order->fresh();
+        });
+    }
+
+    /**
+     * @param  array{status: string, payment_status: string}  $data
+     */
+    private function adminStatusChangeNote(bool $statusChanged, bool $paymentStatusChanged, array $data): string
+    {
+        if ($statusChanged && $paymentStatusChanged) {
+            return "Order status changed to {$data['status']} and payment status changed to {$data['payment_status']}.";
+        }
+
+        if ($statusChanged) {
+            return "Order status changed to {$data['status']}.";
+        }
+
+        return "Payment status changed to {$data['payment_status']}.";
+    }
+
+    /**
+     * Generate a unique human-facing order number, e.g. SE-2026-000123.
+     */
+    private function generateOrderNumber(): string
+    {
+        $year = now()->format('Y');
+        $prefix = "SE-{$year}-";
+
+        for ($attempt = 0; $attempt < 10; $attempt++) {
+            $suffix = str_pad((string) random_int(1, 999999), 6, '0', STR_PAD_LEFT);
+            $orderNumber = $prefix.$suffix;
+
+            if (! Order::where('order_number', $orderNumber)->exists()) {
+                return $orderNumber;
+            }
+        }
+
+        throw new RuntimeException('Unable to generate a unique order number.');
+    }
+}

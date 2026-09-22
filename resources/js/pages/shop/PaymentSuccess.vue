@@ -1,0 +1,26 @@
+<script setup lang="ts">
+import { Head } from '@inertiajs/vue3';
+import ShopPageBreadcrumb from '@/components/shop/ShopPageBreadcrumb.vue';
+import ShopPaymentResult from '@/components/shop/ShopPaymentResult.vue';
+import type { ShopPlacedOrder } from '@/types/shop';
+
+const { order } = defineProps<{
+    order: ShopPlacedOrder | null;
+}>();
+</script>
+
+<template>
+    <Head title="Payment Successful">
+        <meta
+            name="description"
+            content="Your ShopEase online payment was completed successfully."
+        />
+    </Head>
+
+    <div class="bg-gray-50 py-6 md:py-10">
+        <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <ShopPageBreadcrumb :items="[{ label: 'Payment Successful' }]" />
+            <ShopPaymentResult status="success" :order="order" />
+        </div>
+    </div>
+</template>
