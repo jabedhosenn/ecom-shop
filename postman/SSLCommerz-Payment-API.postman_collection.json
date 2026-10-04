@@ -1,8 +1,8 @@
 {
     "info": {
-        "_postman_id": "b9-ecom-sslcommerz-payment-api",
-        "name": "B9 Ecom - SSLCommerz Payment API",
-        "description": "API collection for testing SSLCommerz payment integration in the B9 Ecom shop.\n\n## Setup\n1. Start the Laravel app: `php artisan serve`\n2. Set `base_url` to your app URL (default: http://localhost:8000)\n3. Ensure `.env` has SSLCommerz sandbox credentials\n4. Create an order first (via admin or factory), then use its `order_id` to initiate payment\n\n## Flow\n1. **Initiate Payment** — creates a payment record and returns `gateway_url`\n2. Open `gateway_url` in a browser to complete sandbox payment\n3. SSLCommerz will POST to success/failure/cancel/ipn callbacks automatically\n4. Use **Show Payment** to verify final status",
+        "_postman_id": "ecom-sslcommerz-payment-api",
+        "name": "Ecom - SSLCommerz Payment API",
+        "description": "API collection for testing SSLCommerz payment integration in the Ecom shop.\n\n## Setup\n1. Start the Laravel app: `php artisan serve`\n2. Set `base_url` to your app URL (default: http://localhost:8000)\n3. Ensure `.env` has SSLCommerz sandbox credentials\n4. Create an order first (via admin or factory), then use its `order_id` to initiate payment\n\n## Flow\n1. **Initiate Payment** — creates a payment record and returns `gateway_url`\n2. Open `gateway_url` in a browser to complete sandbox payment\n3. SSLCommerz will POST to success/failure/cancel/ipn callbacks automatically\n4. Use **Show Payment** to verify final status",
         "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
     },
     "variable": [

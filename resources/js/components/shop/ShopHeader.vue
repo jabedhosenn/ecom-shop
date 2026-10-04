@@ -6,7 +6,7 @@ import { useShopCart } from '@/composables/shop/useShopCart';
 import { useShopCatalog } from '@/composables/shop/useShopCatalog';
 import { useShopUi } from '@/composables/shop/useShopUi';
 import { useShopWishlist } from '@/composables/shop/useShopWishlist';
-import { home } from '@/routes';
+import { home, login } from '@/routes';
 import shop from '@/routes/shop';
 
 const page = usePage();
@@ -162,9 +162,9 @@ function handleSearchInput(event: Event): void {
                             />
                         </svg>
                     </button>
-                    <a
-                        href="#"
-                        aria-label="Account"
+                    <Link
+                        :href="login()"
+                        aria-label="Log in"
                         class="hidden h-11 w-11 items-center justify-center rounded-lg text-gray-700 hover:bg-gray-100 focus:ring-2 focus:ring-shop-primary-600 focus:outline-none sm:inline-flex"
                     >
                         <svg
@@ -180,7 +180,7 @@ function handleSearchInput(event: Event): void {
                                 d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
                             />
                         </svg>
-                    </a>
+                    </Link>
                     <Link
                         :href="shop.wishlist()"
                         :aria-label="`Wishlist, ${wishCount} items`"

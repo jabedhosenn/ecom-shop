@@ -559,101 +559,111 @@ function printInvoice(): void {
         </div>
     </div>
 
-    <!-- ─── Printable Invoice (hidden on screen, shown on print) ───────── -->
+        <!-- ─── Printable Invoice (hidden on screen, shown on print) ───────── -->
     <div id="invoice-print">
-        <!-- Coloured header bar -->
-        <div class="invoice-header-bar">
-            <div class="invoice-brand">
-                <h1>B9-Ecom</h1>
+        <!-- Header -->
+        <header class="inv-header">
+            <div class="inv-brand">
+                <h1>ShopEase</h1>
                 <p>Your trusted online store</p>
+                <p>support@shopease.com.bd</p>
             </div>
-            <div class="invoice-title-block">
-                <h2>INVOICE</h2>
-                <span class="invoice-number">{{ order.order_number }}</span>
+            <div class="inv-title">
+                <h2>Invoice</h2>
+                <p class="inv-number">{{ order.order_number }}</p>
             </div>
-        </div>
+        </header>
 
-        <!-- Meta row -->
-        <div class="invoice-meta-row">
-            <div class="invoice-meta-item">
-                <span class="invoice-meta-label">Order Date</span>
-                <span class="invoice-meta-value">{{ formatDate(order.placed_at) }}</span>
+        <!-- Meta strip -->
+        <section class="inv-meta">
+            <div class="inv-meta-item">
+                <span class="inv-label">Order date</span>
+                <span class="inv-value">{{ formatDate(order.placed_at) }}</span>
             </div>
-            <div class="invoice-meta-item">
-                <span class="invoice-meta-label">Payment Method</span>
-                <span class="invoice-meta-value">{{ paymentMethodLabel(order.payment_method) }}</span>
+            <div class="inv-meta-item">
+                <span class="inv-label">Payment method</span>
+                <span class="inv-value">{{ paymentMethodLabel(order.payment_method) }}</span>
             </div>
-            <div class="invoice-meta-item">
-                <span class="invoice-meta-label">Order Status</span>
-                <span class="invoice-status-chip invoice-status-chip--order">{{ order.status }}</span>
+            <div class="inv-meta-item">
+                <span class="inv-label">Order status</span>
+                <span class="inv-value inv-capitalize">{{ order.status }}</span>
             </div>
-            <div class="invoice-meta-item">
-                <span class="invoice-meta-label">Payment Status</span>
-                <span class="invoice-status-chip invoice-status-chip--payment">{{ order.payment_status }}</span>
+            <div class="inv-meta-item">
+                <span class="inv-label">Payment status</span>
+                <span :class="['inv-chip', `inv-chip--${order.payment_status}`]">
+                    {{ order.payment_status }}
+                </span>
             </div>
-        </div>
+        </section>
 
-        <!-- Bill To / Ship To -->
-        <div class="invoice-parties">
-            <div class="invoice-party-box invoice-party-box--bill">
-                <h3>Bill To</h3>
-                <p><strong>{{ order.customer_name }}</strong></p>
+        <!-- Parties -->
+        <section class="inv-parties">
+            <div class="inv-party">
+                <h3>Billed to</h3>
+                <p class="inv-party-name">{{ order.customer_name }}</p>
                 <p>{{ order.phone }}</p>
                 <p>{{ order.email }}</p>
             </div>
-            <div class="invoice-party-box invoice-party-box--ship">
-                <h3>Ship To</h3>
+            <div class="inv-party">
+                <h3>Ship to</h3>
                 <p>{{ order.address }}</p>
                 <p>{{ order.area }}, {{ order.district }}</p>
-                <p v-if="order.notes">Note: {{ order.notes }}</p>
+                <p v-if="order.notes" class="inv-note">Note: {{ order.notes }}</p>
             </div>
-        </div>
+        </section>
 
-        <!-- Items table -->
-        <table class="invoice-items">
+        <!-- Items -->
+        <table class="inv-items">
             <thead>
                 <tr>
-                    <th class="text-left">#</th>
-                    <th class="text-left">Product</th>
-                    <th class="text-center">Qty</th>
-                    <th class="text-right">Unit Price</th>
-                    <th class="text-right">Amount</th>
+                    <th class="inv-col-no">#</th>
+                    <th>Description</th>
+                    <th class="inv-right">Unit price</th>
+                    <th class="inv-center">Qty</th>
+                    <th class="inv-right">Amount</th>
                 </tr>
             </thead>
             <tbody>
-                <tr
-                    v-for="(item, idx) in order.items"
-                    :key="item.id"
-                    :class="idx % 2 === 1 ? 'invoice-row-alt' : ''"
-                >
-                    <td>{{ idx + 1 }}</td>
-                    <td>{{ item.product_name }}</td>
-                    <td class="text-center">{{ item.quantity }}</td>
-                    <td class="text-right">{{ formatTaka(item.unit_price) }}</td>
-                    <td class="text-right">{{ formatTaka(item.line_total) }}</td>
+                <tr v-for="(item, idx) in order.items" :key="item.id">
+                    <td class="inv-col-no">{{ idx + 1 }}</td>
+                    <td class="inv-product">{{ item.product_name }}</td>
+                    <td class="inv-right">{{ formatTaka(item.unit_price) }}</td>
+                    <td class="inv-center">{{ item.quantity }}</td>
+                    <td class="inv-right inv-strong">{{ formatTaka(item.line_total) }}</td>
                 </tr>
             </tbody>
-            <tfoot>
-                <tr class="invoice-subtotal-row">
-                    <td colspan="4" class="text-right">Subtotal</td>
-                    <td class="text-right">{{ formatTaka(order.subtotal) }}</td>
-                </tr>
-                <tr class="invoice-subtotal-row">
-                    <td colspan="4" class="text-right">Delivery Charge</td>
-                    <td class="text-right">{{ formatTaka(order.delivery_charge) }}</td>
-                </tr>
-                <tr class="invoice-total-row">
-                    <td colspan="4" class="text-right">Grand Total</td>
-                    <td class="text-right">{{ formatTaka(order.total) }}</td>
-                </tr>
-            </tfoot>
         </table>
 
+        <!-- Totals -->
+        <section class="inv-totals-wrap">
+            <div class="inv-thanks">
+                <p class="inv-label">Thank you</p>
+                <p>We appreciate your business and hope to serve you again soon.</p>
+            </div>
+            <table class="inv-totals">
+                <tbody>
+                    <tr>
+                        <td>Subtotal</td>
+                        <td class="inv-right">{{ formatTaka(order.subtotal) }}</td>
+                    </tr>
+                    <tr>
+                        <td>Delivery charge</td>
+                        <td class="inv-right">{{ formatTaka(order.delivery_charge) }}</td>
+                    </tr>
+                    <tr class="inv-grand">
+                        <td>Grand total</td>
+                        <td class="inv-right">{{ formatTaka(order.total) }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
         <!-- Footer -->
-        <div class="invoice-footer-bar">
-            <p>Thank you for shopping with B9-Ecom! 🎉</p>
-            <p>Questions? Email us at <strong>support@b9ecom.com</strong></p>
-        </div>
+        <footer class="inv-footer">
+            <p>Thank you for shopping with <strong>ShopEase</strong>!</p>
+            <p>Questions? Email us at <strong>support@shopease.com.bd</strong></p>
+            <p class="inv-dev">Developed by <strong>Jabed Hosen</strong></p>
+        </footer>
     </div>
 </template>
 
@@ -663,260 +673,286 @@ function printInvoice(): void {
 }
 
 @media print {
+    @page {
+        size: A4;
+        margin: 14mm;
+    }
+
     #order-screen {
         display: none !important;
     }
 
     #invoice-print {
         display: block;
-        font-family: 'Segoe UI', Arial, sans-serif;
-        font-size: 13px;
-        color: #1e1e2e;
+        font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+        font-size: 12px;
+        line-height: 1.5;
+        color: #1f2937;
         max-width: 800px;
         margin: 0 auto;
-    }
-
-    /* ── Header bar ─────────────────────────────────────────── */
-    .invoice-header-bar {
-        background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 50%, #2563eb 100%);
-        color: white;
-        padding: 28px 32px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        border-radius: 12px 12px 0 0;
         -webkit-print-color-adjust: exact;
         print-color-adjust: exact;
     }
 
-    .invoice-brand h1 {
-        font-size: 28px;
-        font-weight: 900;
-        margin: 0 0 4px;
-        color: white;
-        letter-spacing: -0.5px;
-    }
-
-    .invoice-brand p {
-        font-size: 12px;
-        color: rgba(255,255,255,0.75);
+    #invoice-print p {
         margin: 0;
     }
 
-    .invoice-title-block {
+    .inv-right { text-align: right; }
+    .inv-center { text-align: center; }
+    .inv-strong { font-weight: 600; color: #111827; }
+    .inv-capitalize { text-transform: capitalize; }
+
+    /* ── Header ─────────────────────────────────────────────── */
+    .inv-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        padding-bottom: 18px;
+        border-bottom: 3px solid #4338ca;
+    }
+
+    .inv-brand h1 {
+        margin: 0 0 4px;
+        font-size: 28px;
+        font-weight: 800;
+        letter-spacing: -0.5px;
+        color: #4338ca;
+    }
+
+    .inv-brand p {
+        font-size: 11.5px;
+        color: #6b7280;
+    }
+
+    .inv-title {
         text-align: right;
     }
 
-    .invoice-title-block h2 {
-        font-size: 24px;
-        font-weight: 800;
-        text-transform: uppercase;
-        letter-spacing: 4px;
-        color: rgba(255,255,255,0.85);
+    .inv-title h2 {
         margin: 0 0 6px;
+        font-size: 26px;
+        font-weight: 300;
+        letter-spacing: 6px;
+        text-transform: uppercase;
+        color: #111827;
     }
 
-    .invoice-number {
-        font-size: 15px;
+    .inv-number {
+        font-size: 13px;
         font-weight: 700;
-        color: white;
-        background: rgba(255,255,255,0.2);
-        padding: 4px 12px;
-        border-radius: 20px;
-        letter-spacing: 1px;
+        letter-spacing: 0.5px;
+        color: #4338ca;
     }
 
-    /* ── Meta row ───────────────────────────────────────────── */
-    .invoice-meta-row {
+    /* ── Meta strip ─────────────────────────────────────────── */
+    .inv-meta {
         display: flex;
-        gap: 0;
-        background: #f8f7ff;
-        border: 1px solid #e0e0f0;
-        border-top: none;
-        -webkit-print-color-adjust: exact;
-        print-color-adjust: exact;
+        margin-top: 18px;
+        background: #f5f5fb;
+        border: 1px solid #e5e7f0;
+        border-radius: 8px;
     }
 
-    .invoice-meta-item {
+    .inv-meta-item {
         flex: 1;
-        padding: 14px 16px;
-        border-right: 1px solid #e0e0f0;
         display: flex;
         flex-direction: column;
+        align-items: flex-start;
         gap: 4px;
+        padding: 12px 16px;
+        border-right: 1px solid #e5e7f0;
     }
 
-    .invoice-meta-item:last-child {
+    .inv-meta-item:last-child {
         border-right: none;
     }
 
-    .invoice-meta-label {
-        font-size: 10px;
+    .inv-label {
+        font-size: 9.5px;
         font-weight: 700;
+        letter-spacing: 1px;
         text-transform: uppercase;
-        letter-spacing: 0.8px;
-        color: #7c6faa;
+        color: #6b7280;
     }
 
-    .invoice-meta-value {
+    .inv-value {
         font-size: 12px;
         font-weight: 600;
-        color: #1e1e2e;
+        color: #111827;
     }
 
-    .invoice-status-chip {
+    .inv-chip {
         display: inline-block;
+        padding: 2px 10px;
+        border-radius: 999px;
         font-size: 11px;
         font-weight: 700;
         text-transform: capitalize;
-        padding: 2px 10px;
-        border-radius: 20px;
-        -webkit-print-color-adjust: exact;
-        print-color-adjust: exact;
+        background: #e5e7eb;
+        color: #374151;
     }
 
-    .invoice-status-chip--order {
-        background: #ede9fe;
-        color: #5b21b6;
-    }
-
-    .invoice-status-chip--payment {
-        background: #d1fae5;
-        color: #065f46;
-    }
+    .inv-chip--paid { background: #d1fae5; color: #065f46; }
+    .inv-chip--pending { background: #fef3c7; color: #92400e; }
+    .inv-chip--failed,
+    .inv-chip--cancelled { background: #fee2e2; color: #991b1b; }
 
     /* ── Parties ────────────────────────────────────────────── */
-    .invoice-parties {
+    .inv-parties {
         display: flex;
-        gap: 0;
-        margin: 20px 0;
-        border: 1px solid #e0e0f0;
-        border-radius: 10px;
-        overflow: hidden;
-        -webkit-print-color-adjust: exact;
-        print-color-adjust: exact;
+        gap: 24px;
+        margin: 22px 0;
     }
 
-    .invoice-party-box {
+    .inv-party {
         flex: 1;
-        padding: 16px 20px;
+        padding-left: 12px;
+        border-left: 3px solid #c7d2fe;
     }
 
-    .invoice-party-box--bill {
-        background: #eff6ff;
-        border-right: 1px solid #e0e0f0;
+    .inv-party:last-child {
+        border-left-color: #fed7aa;
     }
 
-    .invoice-party-box--ship {
-        background: #fff7ed;
-    }
-
-    .invoice-party-box h3 {
+    .inv-party h3 {
+        margin: 0 0 6px;
         font-size: 10px;
         font-weight: 800;
+        letter-spacing: 1.2px;
         text-transform: uppercase;
-        letter-spacing: 1px;
-        color: #6366f1;
-        margin: 0 0 8px;
+        color: #4338ca;
     }
 
-    .invoice-party-box--ship h3 {
-        color: #ea580c;
+    .inv-party:last-child h3 {
+        color: #c2410c;
     }
 
-    .invoice-party-box p {
-        margin: 3px 0;
+    .inv-party p {
         font-size: 12px;
-        color: #333;
-        line-height: 1.6;
+        color: #374151;
+    }
+
+    .inv-party-name {
+        font-size: 14px !important;
+        font-weight: 700;
+        color: #111827 !important;
+    }
+
+    .inv-note {
+        margin-top: 6px !important;
+        font-size: 11px !important;
+        font-style: italic;
+        color: #6b7280 !important;
     }
 
     /* ── Items table ────────────────────────────────────────── */
-    .invoice-items {
+    .inv-items {
         width: 100%;
         border-collapse: collapse;
-        font-size: 12.5px;
-        border-radius: 10px;
-        overflow: hidden;
     }
 
-    .invoice-items thead tr {
-        background: linear-gradient(90deg, #4f46e5, #7c3aed);
-        -webkit-print-color-adjust: exact;
-        print-color-adjust: exact;
-    }
-
-    .invoice-items th {
-        padding: 11px 14px;
-        font-size: 11px;
+    .inv-items thead th {
+        padding: 10px 12px;
+        font-size: 10px;
         font-weight: 700;
+        letter-spacing: 0.8px;
         text-transform: uppercase;
-        letter-spacing: 0.5px;
-        color: #e0d9ff;
+        text-align: left;
+        color: #ffffff;
+        background: #4338ca;
     }
 
-    .invoice-items tbody tr {
-        border-bottom: 1px solid #eeedf8;
+    .inv-items thead th.inv-right { text-align: right; }
+    .inv-items thead th.inv-center { text-align: center; }
+
+    .inv-items tbody td {
+        padding: 11px 12px;
+        border-bottom: 1px solid #e5e7eb;
+        vertical-align: top;
     }
 
-    .invoice-items td {
-        padding: 10px 14px;
-        color: #2e2e3e;
+    .inv-items tbody tr {
+        page-break-inside: avoid;
     }
 
-    .invoice-row-alt {
-        background: #f5f3ff;
-        -webkit-print-color-adjust: exact;
-        print-color-adjust: exact;
+    .inv-items tbody tr:nth-child(even) td {
+        background: #fafafe;
     }
 
-    .invoice-subtotal-row td {
-        padding: 7px 14px;
-        color: #555;
-        background: #fafafa;
-        -webkit-print-color-adjust: exact;
-        print-color-adjust: exact;
+    .inv-col-no {
+        width: 32px;
+        color: #9ca3af;
     }
 
-    .invoice-total-row {
-        background: linear-gradient(90deg, #059669, #10b981);
-        -webkit-print-color-adjust: exact;
-        print-color-adjust: exact;
+    .inv-product {
+        font-weight: 600;
+        color: #111827;
     }
 
-    .invoice-total-row td {
-        padding: 14px 14px;
+    /* ── Totals ─────────────────────────────────────────────── */
+    .inv-totals-wrap {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 32px;
+        margin-top: 18px;
+        page-break-inside: avoid;
+    }
+
+    .inv-thanks {
+        flex: 1;
+        max-width: 300px;
+        padding-top: 4px;
+    }
+
+    .inv-thanks p:last-child {
+        margin-top: 4px;
+        font-size: 11.5px;
+        color: #6b7280;
+    }
+
+    .inv-totals {
+        width: 280px;
+        border-collapse: collapse;
+    }
+
+    .inv-totals td {
+        padding: 7px 12px;
+        font-size: 12px;
+        color: #4b5563;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    .inv-totals .inv-grand td {
+        padding: 12px;
         font-size: 15px;
         font-weight: 800;
-        color: white !important;
-        background: transparent;
+        color: #ffffff;
+        background: #4338ca;
+        border-bottom: none;
     }
 
-    .text-left  { text-align: left; }
-    .text-center{ text-align: center; }
-    .text-right { text-align: right; }
-
-    /* ── Footer bar ─────────────────────────────────────────── */
-    .invoice-footer-bar {
-        margin-top: 20px;
-        background: linear-gradient(135deg, #4f46e5, #7c3aed);
-        color: white;
+    /* ── Footer ─────────────────────────────────────────────── */
+    .inv-footer {
+        margin-top: 36px;
+        padding-top: 14px;
+        border-top: 1px solid #e5e7eb;
         text-align: center;
-        padding: 16px 24px;
-        border-radius: 0 0 12px 12px;
-        font-size: 12px;
+        font-size: 11px;
         line-height: 1.8;
-        -webkit-print-color-adjust: exact;
-        print-color-adjust: exact;
+        color: #6b7280;
+        page-break-inside: avoid;
     }
 
-    .invoice-footer-bar p {
-        margin: 0;
-        color: rgba(255,255,255,0.9);
+    .inv-footer strong {
+        color: #111827;
     }
 
-    .invoice-footer-bar strong {
-        color: white;
+    .inv-dev {
+        margin-top: 4px !important;
+        font-size: 10px;
+        color: #9ca3af;
     }
 }
 </style>
