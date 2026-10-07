@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 #[Fillable([
     'order_number',
     'user_id',
+    'coupon_id',
     'customer_name',
     'phone',
     'email',
@@ -19,8 +20,10 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
     'area',
     'address',
     'notes',
+    'coupon_code',
     'subtotal',
     'delivery_charge',
+    'discount_amount',
     'total',
     'payment_method',
     'payment_status',
@@ -40,6 +43,7 @@ class Order extends Model
         return [
             'subtotal' => 'decimal:2',
             'delivery_charge' => 'decimal:2',
+            'discount_amount' => 'decimal:2',
             'total' => 'decimal:2',
             'placed_at' => 'datetime',
         ];
@@ -57,6 +61,11 @@ class Order extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function coupon(): BelongsTo
+    {
+        return $this->belongsTo(Coupon::class);
     }
 
     public function items(): HasMany

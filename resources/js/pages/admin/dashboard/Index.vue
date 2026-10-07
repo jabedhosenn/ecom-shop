@@ -2,12 +2,19 @@
 import { Head, Link } from '@inertiajs/vue3';
 import {
     AlertTriangle,
+    ArrowUpRight,
+    CircleCheck,
+    ClipboardList,
+    CreditCard,
     Eye,
     Heart,
+    Layers,
     Package,
     ShoppingCart,
     TrendingUp,
+    Trophy,
     Users,
+    Wallet,
 } from '@lucide/vue';
 import DashboardRevenueChart from '@/components/admin/DashboardRevenueChart.vue';
 import DashboardStatCard from '@/components/admin/DashboardStatCard.vue';
@@ -105,9 +112,15 @@ function breakdownPercent(count: number, total: number): number {
     return Math.round((count / total) * 100);
 }
 
-/* ---------- Presentation-only helpers (colors) ---------- */
+/* ---------- Presentation-only helpers (styling & colors) ---------- */
 
-// Bar / dot color for a status or method key. Unknown keys fall back to slate.
+// Shared surface style for every card: soft border, rounded, gentle lift on hover.
+const surface =
+    'gap-0 overflow-hidden rounded-2xl border-border/60 py-0 shadow-sm transition-shadow hover:shadow-md';
+const surfaceHeader = 'border-b border-border/60 bg-muted/30 px-5 py-4';
+const surfaceBody = 'px-5 py-5';
+
+// Solid color for bars, dots and stacked segments.
 function statusBarClass(key: string): string {
     switch (String(key).toLowerCase()) {
         case 'pending':
@@ -138,7 +151,7 @@ function statusBarClass(key: string): string {
     }
 }
 
-// Soft tinted pill colors layered on top of the existing Badge variants.
+// Soft tinted pills layered on top of the existing Badge variants.
 function statusPillClass(key: string): string {
     switch (String(key).toLowerCase()) {
         case 'pending':
@@ -203,54 +216,94 @@ function maxCategoryCount(categories: AdminDashboardTopCategory[]): number {
     <Head title="Dashboard" />
 
     <div
-        class="flex h-full flex-1 flex-col gap-6 overflow-x-auto rounded-xl p-4 md:p-6"
+        class="flex h-full min-w-0 flex-1 flex-col gap-6 rounded-xl bg-gradient-to-b from-muted/40 to-transparent p-4 md:p-6"
     >
         <!-- Page header -->
         <div
-            class="relative overflow-hidden rounded-2xl border bg-gradient-to-br from-primary/10 via-background to-blue-500/10 p-5 md:p-6"
+            class="relative overflow-hidden rounded-2xl border border-border/60 bg-card px-5 py-5 shadow-sm md:px-7"
         >
             <div
-                class="pointer-events-none absolute -top-16 -right-16 size-56 rounded-full bg-primary/10 blur-3xl"
+                class="absolute inset-y-0 left-0 w-1.5 bg-gradient-to-b from-blue-500 via-violet-500 to-pink-500"
             />
             <div
-                class="pointer-events-none absolute -bottom-20 left-1/3 size-56 rounded-full bg-blue-500/10 blur-3xl"
+                class="pointer-events-none absolute -top-24 right-0 size-72 rounded-full bg-gradient-to-br from-violet-500/15 to-blue-500/10 blur-3xl"
             />
-            <Heading
-                title="Dashboard"
-                description="Store performance and operational overview"
-            />
+            <div class="relative pl-2">
+                <Heading
+                    title="Dashboard"
+                    description="Store performance and operational overview"
+                />
+            </div>
         </div>
 
         <!-- KPI row -->
-        <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            <DashboardStatCard
-                title="Total revenue"
-                :value="formatTaka(overview.total_revenue)"
-                :change-percent="overview.revenue_change_percent"
-                :icon="TrendingUp"
-                icon-class="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
-            />
-            <DashboardStatCard
-                title="Total orders"
-                :value="overview.total_orders.toLocaleString()"
-                :change-percent="overview.orders_change_percent"
-                :icon="ShoppingCart"
-                icon-class="bg-blue-500/10 text-blue-600 dark:text-blue-400"
-            />
-            <DashboardStatCard
-                title="Average order value"
-                :value="formatTaka(overview.average_order_value)"
-                description="Based on paid orders"
-                :icon="TrendingUp"
-                icon-class="bg-violet-500/10 text-violet-600 dark:text-violet-400"
-            />
-            <DashboardStatCard
-                title="Customers"
-                :value="overview.total_customers.toLocaleString()"
-                :description="`${overview.new_customers_this_month} new this month`"
-                :icon="Users"
-                icon-class="bg-amber-500/10 text-amber-600 dark:text-amber-400"
-            />
+        <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
+            <div
+                class="rounded-2xl border-t-2 border-t-emerald-500 transition-transform hover:-translate-y-0.5"
+            >
+                <DashboardStatCard
+                    title="Total revenue"
+                    :value="formatTaka(overview.total_revenue)"
+                    :change-percent="overview.revenue_change_percent"
+                    :icon="TrendingUp"
+                    icon-class="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                />
+            </div>
+            <div
+                class="rounded-2xl border-t-2 border-t-blue-500 transition-transform hover:-translate-y-0.5"
+            >
+                <DashboardStatCard
+                    title="Total orders"
+                    :value="overview.total_orders.toLocaleString()"
+                    :change-percent="overview.orders_change_percent"
+                    :icon="ShoppingCart"
+                    icon-class="bg-blue-500/10 text-blue-600 dark:text-blue-400"
+                />
+            </div>
+            <div
+                class="rounded-2xl border-t-2 border-t-cyan-500 transition-transform hover:-translate-y-0.5"
+            >
+                <DashboardStatCard
+                    title="Total products"
+                    :value="overview.total_products.toLocaleString()"
+                    :description="`${overview.active_products} active products`"
+                    :icon="Package"
+                    icon-class="bg-cyan-500/10 text-cyan-600 dark:text-cyan-400"
+                />
+            </div>
+            <div
+                class="rounded-2xl border-t-2 border-t-violet-500 transition-transform hover:-translate-y-0.5"
+            >
+                <DashboardStatCard
+                    title="Total customers"
+                    :value="overview.total_customers.toLocaleString()"
+                    :description="`${overview.new_customers_this_month} new this month`"
+                    :icon="Users"
+                    icon-class="bg-violet-500/10 text-violet-600 dark:text-violet-400"
+                />
+            </div>
+            <div
+                class="rounded-2xl border-t-2 border-t-amber-500 transition-transform hover:-translate-y-0.5"
+            >
+                <DashboardStatCard
+                    title="Pending orders"
+                    :value="overview.pending_orders.toLocaleString()"
+                    description="Awaiting fulfillment"
+                    :icon="ClipboardList"
+                    icon-class="bg-amber-500/10 text-amber-600 dark:text-amber-400"
+                />
+            </div>
+            <div
+                class="rounded-2xl border-t-2 border-t-emerald-500 transition-transform hover:-translate-y-0.5"
+            >
+                <DashboardStatCard
+                    title="Completed orders"
+                    :value="overview.completed_orders.toLocaleString()"
+                    description="Successfully delivered"
+                    :icon="CircleCheck"
+                    icon-class="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                />
+            </div>
         </div>
 
         <!-- Revenue + quick stats -->
@@ -259,41 +312,27 @@ function maxCategoryCount(categories: AdminDashboardTopCategory[]): number {
                 <DashboardRevenueChart :data="revenue_chart" />
             </div>
 
-            <Card class="h-full overflow-hidden shadow-sm">
-                <div class="h-1 w-full bg-gradient-to-r from-orange-500 via-primary to-pink-500" />
-                <CardHeader>
-                    <CardTitle>Quick stats</CardTitle>
-                    <CardDescription>Operational snapshot</CardDescription>
-                </CardHeader>
-                <CardContent class="grid gap-3">
-                    <div
-                        class="flex items-center justify-between gap-3 rounded-xl border border-orange-500/20 bg-orange-500/5 p-3 transition-colors hover:bg-orange-500/10"
-                    >
-                        <div class="flex items-center gap-3">
-                            <div
-                                class="flex size-10 items-center justify-center rounded-lg bg-orange-500/15 text-orange-600 dark:text-orange-400"
-                            >
-                                <ShoppingCart class="size-5" />
-                            </div>
-                            <div>
-                                <p class="text-sm font-medium">Pending orders</p>
-                                <p class="text-xs text-muted-foreground">
-                                    Awaiting fulfillment
-                                </p>
-                            </div>
-                        </div>
-                        <span
-                            class="text-xl font-bold text-orange-600 tabular-nums dark:text-orange-400"
-                            >{{ overview.pending_orders }}</span
+            <Card :class="[surface, 'h-full']">
+                <CardHeader :class="surfaceHeader">
+                    <div class="flex items-center gap-3">
+                        <div
+                            class="flex size-9 items-center justify-center rounded-xl bg-gradient-to-br from-orange-500 to-pink-500 text-white shadow-sm"
                         >
+                            <ClipboardList class="size-4.5" />
+                        </div>
+                        <div>
+                            <CardTitle>Quick stats</CardTitle>
+                            <CardDescription>Operational snapshot</CardDescription>
+                        </div>
                     </div>
-
+                </CardHeader>
+                <CardContent :class="[surfaceBody, 'grid gap-3']">
                     <div
-                        class="flex items-center justify-between gap-3 rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-3 transition-colors hover:bg-emerald-500/10"
+                        class="flex items-center justify-between gap-3 rounded-xl border border-emerald-500/20 bg-gradient-to-r from-emerald-500/10 to-transparent p-3 transition-colors hover:border-emerald-500/40"
                     >
                         <div class="flex items-center gap-3">
                             <div
-                                class="flex size-10 items-center justify-center rounded-lg bg-emerald-500/15 text-emerald-600 dark:text-emerald-400"
+                                class="flex size-10 items-center justify-center rounded-xl bg-emerald-500/15 text-emerald-600 dark:text-emerald-400"
                             >
                                 <Package class="size-5" />
                             </div>
@@ -305,17 +344,17 @@ function maxCategoryCount(categories: AdminDashboardTopCategory[]): number {
                             </div>
                         </div>
                         <span
-                            class="text-xl font-bold text-emerald-600 tabular-nums dark:text-emerald-400"
+                            class="text-2xl font-bold text-emerald-600 tabular-nums dark:text-emerald-400"
                             >{{ overview.active_products }}</span
                         >
                     </div>
 
                     <div
-                        class="flex items-center justify-between gap-3 rounded-xl border border-red-500/20 bg-red-500/5 p-3 transition-colors hover:bg-red-500/10"
+                        class="flex items-center justify-between gap-3 rounded-xl border border-red-500/20 bg-gradient-to-r from-red-500/10 to-transparent p-3 transition-colors hover:border-red-500/40"
                     >
                         <div class="flex items-center gap-3">
                             <div
-                                class="flex size-10 items-center justify-center rounded-lg bg-red-500/15 text-red-600 dark:text-red-400"
+                                class="flex size-10 items-center justify-center rounded-xl bg-red-500/15 text-red-600 dark:text-red-400"
                             >
                                 <AlertTriangle class="size-5" />
                             </div>
@@ -327,17 +366,17 @@ function maxCategoryCount(categories: AdminDashboardTopCategory[]): number {
                             </div>
                         </div>
                         <span
-                            class="text-xl font-bold text-red-600 tabular-nums dark:text-red-400"
+                            class="text-2xl font-bold text-red-600 tabular-nums dark:text-red-400"
                             >{{ overview.out_of_stock_products }}</span
                         >
                     </div>
 
                     <div
-                        class="flex items-center justify-between gap-3 rounded-xl border border-pink-500/20 bg-pink-500/5 p-3 transition-colors hover:bg-pink-500/10"
+                        class="flex items-center justify-between gap-3 rounded-xl border border-pink-500/20 bg-gradient-to-r from-pink-500/10 to-transparent p-3 transition-colors hover:border-pink-500/40"
                     >
                         <div class="flex items-center gap-3">
                             <div
-                                class="flex size-10 items-center justify-center rounded-lg bg-pink-500/15 text-pink-600 dark:text-pink-400"
+                                class="flex size-10 items-center justify-center rounded-xl bg-pink-500/15 text-pink-600 dark:text-pink-400"
                             >
                                 <Heart class="size-5" />
                             </div>
@@ -349,8 +388,30 @@ function maxCategoryCount(categories: AdminDashboardTopCategory[]): number {
                             </div>
                         </div>
                         <span
-                            class="text-xl font-bold text-pink-600 tabular-nums dark:text-pink-400"
+                            class="text-2xl font-bold text-pink-600 tabular-nums dark:text-pink-400"
                             >{{ overview.total_wishlists }}</span
+                        >
+                    </div>
+
+                    <div
+                        class="flex items-center justify-between gap-3 rounded-xl border border-violet-500/20 bg-gradient-to-r from-violet-500/10 to-transparent p-3 transition-colors hover:border-violet-500/40"
+                    >
+                        <div class="flex items-center gap-3">
+                            <div
+                                class="flex size-10 items-center justify-center rounded-xl bg-violet-500/15 text-violet-600 dark:text-violet-400"
+                            >
+                                <Wallet class="size-5" />
+                            </div>
+                            <div>
+                                <p class="text-sm font-medium">Average order value</p>
+                                <p class="text-xs text-muted-foreground">
+                                    Based on paid orders
+                                </p>
+                            </div>
+                        </div>
+                        <span
+                            class="text-lg font-bold text-violet-600 tabular-nums dark:text-violet-400"
+                            >{{ formatTaka(overview.average_order_value) }}</span
                         >
                     </div>
                 </CardContent>
@@ -359,13 +420,34 @@ function maxCategoryCount(categories: AdminDashboardTopCategory[]): number {
 
         <!-- Breakdowns -->
         <div class="grid gap-4 lg:grid-cols-3">
-            <Card class="overflow-hidden shadow-sm">
-                <div class="h-1 w-full bg-blue-500" />
-                <CardHeader>
-                    <CardTitle>Orders by status</CardTitle>
-                    <CardDescription>Fulfillment pipeline</CardDescription>
+            <Card :class="surface">
+                <CardHeader :class="surfaceHeader">
+                    <div class="flex items-center gap-3">
+                        <div
+                            class="flex size-9 items-center justify-center rounded-xl bg-blue-500/15 text-blue-600 dark:text-blue-400"
+                        >
+                            <Layers class="size-4.5" />
+                        </div>
+                        <div>
+                            <CardTitle>Orders by status</CardTitle>
+                            <CardDescription>Fulfillment pipeline</CardDescription>
+                        </div>
+                    </div>
                 </CardHeader>
-                <CardContent class="grid gap-4">
+                <CardContent :class="[surfaceBody, 'grid gap-4']">
+                    <div
+                        class="flex h-3 w-full gap-0.5 overflow-hidden rounded-full bg-muted"
+                    >
+                        <div
+                            v-for="item in orders_by_status"
+                            :key="`seg-${item.status}`"
+                            class="h-full first:rounded-l-full last:rounded-r-full"
+                            :class="statusBarClass(item.status)"
+                            :style="{
+                                width: `${breakdownPercent(item.count, overview.total_orders)}%`,
+                            }"
+                        />
+                    </div>
                     <div
                         v-for="item in orders_by_status"
                         :key="item.status"
@@ -394,9 +476,7 @@ function maxCategoryCount(categories: AdminDashboardTopCategory[]): number {
                                 >
                             </span>
                         </div>
-                        <div
-                            class="h-2.5 overflow-hidden rounded-full bg-muted"
-                        >
+                        <div class="h-1.5 overflow-hidden rounded-full bg-muted">
                             <div
                                 class="h-full rounded-full transition-all duration-500"
                                 :class="statusBarClass(item.status)"
@@ -409,13 +489,34 @@ function maxCategoryCount(categories: AdminDashboardTopCategory[]): number {
                 </CardContent>
             </Card>
 
-            <Card class="overflow-hidden shadow-sm">
-                <div class="h-1 w-full bg-emerald-500" />
-                <CardHeader>
-                    <CardTitle>Payment status</CardTitle>
-                    <CardDescription>Collection health</CardDescription>
+            <Card :class="surface">
+                <CardHeader :class="surfaceHeader">
+                    <div class="flex items-center gap-3">
+                        <div
+                            class="flex size-9 items-center justify-center rounded-xl bg-emerald-500/15 text-emerald-600 dark:text-emerald-400"
+                        >
+                            <Wallet class="size-4.5" />
+                        </div>
+                        <div>
+                            <CardTitle>Payment status</CardTitle>
+                            <CardDescription>Collection health</CardDescription>
+                        </div>
+                    </div>
                 </CardHeader>
-                <CardContent class="grid gap-4">
+                <CardContent :class="[surfaceBody, 'grid gap-4']">
+                    <div
+                        class="flex h-3 w-full gap-0.5 overflow-hidden rounded-full bg-muted"
+                    >
+                        <div
+                            v-for="item in payment_status_breakdown"
+                            :key="`seg-${item.status}`"
+                            class="h-full first:rounded-l-full last:rounded-r-full"
+                            :class="statusBarClass(item.status)"
+                            :style="{
+                                width: `${breakdownPercent(item.count, overview.total_orders)}%`,
+                            }"
+                        />
+                    </div>
                     <div
                         v-for="item in payment_status_breakdown"
                         :key="item.status"
@@ -444,9 +545,7 @@ function maxCategoryCount(categories: AdminDashboardTopCategory[]): number {
                                 >
                             </span>
                         </div>
-                        <div
-                            class="h-2.5 overflow-hidden rounded-full bg-muted"
-                        >
+                        <div class="h-1.5 overflow-hidden rounded-full bg-muted">
                             <div
                                 class="h-full rounded-full transition-all duration-500"
                                 :class="statusBarClass(item.status)"
@@ -459,13 +558,34 @@ function maxCategoryCount(categories: AdminDashboardTopCategory[]): number {
                 </CardContent>
             </Card>
 
-            <Card class="overflow-hidden shadow-sm">
-                <div class="h-1 w-full bg-violet-500" />
-                <CardHeader>
-                    <CardTitle>Payment methods</CardTitle>
-                    <CardDescription>How customers pay</CardDescription>
+            <Card :class="surface">
+                <CardHeader :class="surfaceHeader">
+                    <div class="flex items-center gap-3">
+                        <div
+                            class="flex size-9 items-center justify-center rounded-xl bg-violet-500/15 text-violet-600 dark:text-violet-400"
+                        >
+                            <CreditCard class="size-4.5" />
+                        </div>
+                        <div>
+                            <CardTitle>Payment methods</CardTitle>
+                            <CardDescription>How customers pay</CardDescription>
+                        </div>
+                    </div>
                 </CardHeader>
-                <CardContent class="grid gap-4">
+                <CardContent :class="[surfaceBody, 'grid gap-4']">
+                    <div
+                        class="flex h-3 w-full gap-0.5 overflow-hidden rounded-full bg-muted"
+                    >
+                        <div
+                            v-for="item in payment_method_breakdown"
+                            :key="`seg-${item.method}`"
+                            class="h-full first:rounded-l-full last:rounded-r-full"
+                            :class="statusBarClass(item.method)"
+                            :style="{
+                                width: `${breakdownPercent(item.count, overview.total_orders)}%`,
+                            }"
+                        />
+                    </div>
                     <div
                         v-for="item in payment_method_breakdown"
                         :key="item.method"
@@ -494,9 +614,7 @@ function maxCategoryCount(categories: AdminDashboardTopCategory[]): number {
                                 >
                             </span>
                         </div>
-                        <div
-                            class="h-2.5 overflow-hidden rounded-full bg-muted"
-                        >
+                        <div class="h-1.5 overflow-hidden rounded-full bg-muted">
                             <div
                                 class="h-full rounded-full transition-all duration-500"
                                 :class="statusBarClass(item.method)"
@@ -512,55 +630,67 @@ function maxCategoryCount(categories: AdminDashboardTopCategory[]): number {
 
         <!-- Recent orders + top lists -->
         <div class="grid gap-4 xl:grid-cols-2">
-            <Card class="overflow-hidden shadow-sm">
-                <div class="h-1 w-full bg-gradient-to-r from-blue-500 to-violet-500" />
+            <Card :class="surface">
                 <CardHeader
-                    class="flex flex-row items-center justify-between gap-4"
+                    :class="[
+                        surfaceHeader,
+                        'flex flex-row items-center justify-between gap-4',
+                    ]"
                 >
-                    <div>
-                        <CardTitle>Recent orders</CardTitle>
-                        <CardDescription>Latest customer activity</CardDescription>
+                    <div class="flex items-center gap-3">
+                        <div
+                            class="flex size-9 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-violet-500 text-white shadow-sm"
+                        >
+                            <ShoppingCart class="size-4.5" />
+                        </div>
+                        <div>
+                            <CardTitle>Recent orders</CardTitle>
+                            <CardDescription>Latest customer activity</CardDescription>
+                        </div>
                     </div>
                     <Button variant="outline" size="sm" as-child>
-                        <Link :href="ordersIndex()">View all</Link>
+                        <Link :href="ordersIndex()">
+                            View all
+                            <ArrowUpRight class="size-3.5" />
+                        </Link>
                     </Button>
                 </CardHeader>
-                <CardContent class="overflow-x-auto">
+                <CardContent class="overflow-x-auto px-2 py-2">
                     <table class="w-full min-w-[520px] text-sm">
                         <thead>
-                            <tr
-                                class="border-b bg-muted/50 text-left text-xs text-muted-foreground"
-                            >
-                                <th class="rounded-l-lg px-3 py-2.5 font-medium">
-                                    Order
-                                </th>
-                                <th class="px-3 py-2.5 font-medium">Customer</th>
-                                <th class="px-3 py-2.5 font-medium">Total</th>
-                                <th class="px-3 py-2.5 font-medium">Status</th>
-                                <th class="px-3 py-2.5 font-medium">Placed</th>
-                                <th class="rounded-r-lg px-3 py-2.5 font-medium">
+                            <tr class="text-left text-xs text-muted-foreground">
+                                <th class="px-3 py-3 font-medium">Order</th>
+                                <th class="px-3 py-3 font-medium">Customer</th>
+                                <th class="px-3 py-3 font-medium">Total</th>
+                                <th class="px-3 py-3 font-medium">Status</th>
+                                <th class="px-3 py-3 font-medium">Placed</th>
+                                <th class="px-3 py-3 font-medium">
                                     <span class="sr-only">View</span>
                                 </th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody class="divide-y divide-border/60">
                             <tr
                                 v-for="order in recent_orders"
                                 :key="order.id"
-                                class="border-b transition-colors last:border-0 hover:bg-muted/40"
+                                class="transition-colors hover:bg-blue-500/5"
                             >
-                                <td
-                                    class="px-3 py-3 font-semibold text-primary"
-                                >
-                                    {{ order.order_number }}
+                                <td class="px-3 py-3.5">
+                                    <span
+                                        class="rounded-md bg-primary/10 px-2 py-1 text-xs font-semibold text-primary"
+                                    >
+                                        {{ order.order_number }}
+                                    </span>
                                 </td>
-                                <td class="px-3 py-3">
+                                <td class="px-3 py-3.5 font-medium">
                                     {{ order.customer_name }}
                                 </td>
-                                <td class="px-3 py-3 font-medium tabular-nums">
+                                <td
+                                    class="px-3 py-3.5 font-semibold tabular-nums"
+                                >
                                     {{ formatTaka(order.total) }}
                                 </td>
-                                <td class="px-3 py-3">
+                                <td class="px-3 py-3.5">
                                     <div class="flex flex-wrap gap-1.5">
                                         <Badge
                                             :variant="
@@ -587,14 +717,15 @@ function maxCategoryCount(categories: AdminDashboardTopCategory[]): number {
                                     </div>
                                 </td>
                                 <td
-                                    class="px-3 py-3 text-xs whitespace-nowrap text-muted-foreground"
+                                    class="px-3 py-3.5 text-xs whitespace-nowrap text-muted-foreground"
                                 >
                                     {{ formatDate(order.placed_at) }}
                                 </td>
-                                <td class="px-3 py-3 text-right">
+                                <td class="px-3 py-3.5 text-right">
                                     <Button
                                         variant="ghost"
                                         size="icon-sm"
+                                        class="hover:bg-blue-500/10 hover:text-blue-600"
                                         as-child
                                     >
                                         <Link :href="orderShow(order.id)">
@@ -607,7 +738,7 @@ function maxCategoryCount(categories: AdminDashboardTopCategory[]): number {
                             <tr v-if="recent_orders.length === 0">
                                 <td
                                     colspan="6"
-                                    class="py-10 text-center text-muted-foreground"
+                                    class="py-12 text-center text-muted-foreground"
                                 >
                                     No orders yet.
                                 </td>
@@ -618,28 +749,40 @@ function maxCategoryCount(categories: AdminDashboardTopCategory[]): number {
             </Card>
 
             <div class="grid gap-4">
-                <Card class="overflow-hidden shadow-sm">
-                    <div class="h-1 w-full bg-gradient-to-r from-amber-400 to-orange-500" />
+                <Card :class="surface">
                     <CardHeader
-                        class="flex flex-row items-center justify-between gap-4"
+                        :class="[
+                            surfaceHeader,
+                            'flex flex-row items-center justify-between gap-4',
+                        ]"
                     >
-                        <div>
-                            <CardTitle>Top products</CardTitle>
-                            <CardDescription>By units sold</CardDescription>
+                        <div class="flex items-center gap-3">
+                            <div
+                                class="flex size-9 items-center justify-center rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 text-white shadow-sm"
+                            >
+                                <Trophy class="size-4.5" />
+                            </div>
+                            <div>
+                                <CardTitle>Top products</CardTitle>
+                                <CardDescription>By units sold</CardDescription>
+                            </div>
                         </div>
                         <Button variant="outline" size="sm" as-child>
-                            <Link :href="productsIndex()">View all</Link>
+                            <Link :href="productsIndex()">
+                                View all
+                                <ArrowUpRight class="size-3.5" />
+                            </Link>
                         </Button>
                     </CardHeader>
-                    <CardContent class="grid gap-2">
+                    <CardContent :class="[surfaceBody, 'grid gap-1']">
                         <div
                             v-for="(product, index) in top_products"
                             :key="product.id"
-                            class="flex items-center justify-between gap-3 rounded-xl p-2.5 transition-colors hover:bg-muted/50"
+                            class="flex items-center justify-between gap-3 rounded-xl p-2.5 transition-colors hover:bg-amber-500/5"
                         >
                             <div class="flex min-w-0 items-center gap-3">
                                 <span
-                                    class="flex size-8 shrink-0 items-center justify-center rounded-full text-xs font-semibold"
+                                    class="flex size-9 shrink-0 items-center justify-center rounded-full text-sm font-bold"
                                     :class="rankClass(index)"
                                 >
                                     {{ index + 1 }}
@@ -655,12 +798,12 @@ function maxCategoryCount(categories: AdminDashboardTopCategory[]): number {
                             </div>
                             <div class="text-right">
                                 <p
-                                    class="text-sm font-semibold text-emerald-600 dark:text-emerald-400"
+                                    class="inline-block rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-xs font-semibold text-emerald-700 dark:text-emerald-400"
                                 >
                                     {{ product.sold_count }} sold
                                 </p>
                                 <p
-                                    class="text-xs text-muted-foreground tabular-nums"
+                                    class="mt-1 text-xs text-muted-foreground tabular-nums"
                                 >
                                     {{ formatTaka(product.price) }}
                                 </p>
@@ -675,13 +818,21 @@ function maxCategoryCount(categories: AdminDashboardTopCategory[]): number {
                     </CardContent>
                 </Card>
 
-                <Card class="overflow-hidden shadow-sm">
-                    <div class="h-1 w-full bg-gradient-to-r from-emerald-500 to-cyan-500" />
-                    <CardHeader>
-                        <CardTitle>Top categories</CardTitle>
-                        <CardDescription>By product count</CardDescription>
+                <Card :class="surface">
+                    <CardHeader :class="surfaceHeader">
+                        <div class="flex items-center gap-3">
+                            <div
+                                class="flex size-9 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-cyan-500 text-white shadow-sm"
+                            >
+                                <Layers class="size-4.5" />
+                            </div>
+                            <div>
+                                <CardTitle>Top categories</CardTitle>
+                                <CardDescription>By product count</CardDescription>
+                            </div>
+                        </div>
                     </CardHeader>
-                    <CardContent class="grid gap-4">
+                    <CardContent :class="[surfaceBody, 'grid gap-4']">
                         <div
                             v-for="(category, index) in top_categories"
                             :key="category.id"
@@ -695,13 +846,13 @@ function maxCategoryCount(categories: AdminDashboardTopCategory[]): number {
                                     />
                                     {{ category.name }}
                                 </span>
-                                <span class="text-muted-foreground">
+                                <span
+                                    class="rounded-full bg-muted px-2.5 py-0.5 text-xs text-muted-foreground"
+                                >
                                     {{ category.products_count }} products
                                 </span>
                             </div>
-                            <div
-                                class="h-2 overflow-hidden rounded-full bg-muted"
-                            >
+                            <div class="h-1.5 overflow-hidden rounded-full bg-muted">
                                 <div
                                     class="h-full rounded-full transition-all duration-500"
                                     :class="categoryBarClass(index)"

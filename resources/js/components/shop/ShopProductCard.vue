@@ -5,7 +5,7 @@ import { useShopCart } from '@/composables/shop/useShopCart';
 import { useShopUi } from '@/composables/shop/useShopUi';
 import { useShopWishlist } from '@/composables/shop/useShopWishlist';
 import { formatTaka } from '@/lib/shop/currency';
-import { productShowUrl } from '@/lib/shop/product';
+import { productShowUrl, savingsPercent } from '@/lib/shop/product';
 import type { ShopProduct } from '@/types/shop';
 
 const { product } = defineProps<{
@@ -27,22 +27,28 @@ function handleToggleWish(): void {
 }
 
 function handleAddToCart(): void {
-    if (!product.id) return;
+    if (!product.id) {
+return;
+}
+
     addToCart(product.id, 1);
     showToast('Added to cart');
 }
 
 function handleBuyNow(): void {
-    if (!product.id) return;
+    if (!product.id) {
+return;
+}
+
     buyNow(product.id, 1);
 }
 </script>
 
 <template>
     <article
-        class="group flex flex-col overflow-hidden rounded-xl border border-gray-200 bg-white transition duration-300 ease-out hover:-translate-y-1 hover:border-shop-primary-600 hover:shadow-xl"
+        class="group flex flex-col overflow-hidden rounded-2xl border border-[#e8e9e2] bg-white shadow-sm transition duration-300 ease-out hover:-translate-y-1 hover:border-shop-primary-600/40 hover:shadow-xl hover:shadow-gray-900/10"
     >
-        <div class="relative aspect-square overflow-hidden bg-gray-100">
+        <div class="relative aspect-[4/4.25] overflow-hidden bg-[#f1f2ed]">
             <Link
                 :href="productShowUrl(product)"
                 :aria-label="`View ${product.name}`"
@@ -52,7 +58,7 @@ function handleBuyNow(): void {
                     :src="product.img"
                     :alt="product.name"
                     loading="lazy"
-                    class="h-full w-full object-cover transition duration-500 ease-out group-hover:scale-110"
+                    class="h-full w-full object-cover transition duration-500 ease-out group-hover:scale-105"
                     :class="{ grayscale: !product.inStock }"
                 />
                 <div
@@ -75,21 +81,27 @@ function handleBuyNow(): void {
             >
                 <span
                     v-if="product.inStock"
-                    class="rounded-full bg-green-50 px-2.5 py-1 text-xs font-medium text-green-700 shadow-sm"
-                    >In Stock</span
+                    class="rounded-full bg-white/95 px-2.5 py-1 text-[10px] font-semibold tracking-wide text-shop-primary-700 uppercase shadow-sm"
+                    >Available</span
                 >
                 <span
                     v-if="product.tag"
-                    class="rounded-full bg-shop-accent-500 px-2.5 py-1 text-xs font-semibold text-white shadow-sm"
+                    class="rounded-full bg-shop-accent-500 px-2.5 py-1 text-[10px] font-semibold tracking-wide text-white uppercase shadow-sm"
                     >{{ product.tag }}</span
                 >
             </div>
+            <span
+                v-if="product.oldPrice && product.oldPrice > product.price"
+                class="absolute right-2 bottom-2 rounded-full bg-gray-950 px-2.5 py-1 text-xs font-semibold text-white shadow-sm"
+            >
+                -{{ savingsPercent(product.price, product.oldPrice) }}%
+            </span>
 
             <button
                 type="button"
                 aria-label="Add to wishlist"
                 :aria-pressed="isWishlisted"
-                class="wish-btn absolute top-2 right-2 inline-flex h-9 w-9 items-center justify-center rounded-full bg-white/90 text-gray-700 shadow-sm transition duration-200 hover:scale-110 hover:bg-white hover:text-red-600 active:scale-95 focus:ring-2 focus:ring-shop-primary-600 focus:outline-none sm:translate-y-1 sm:opacity-0 sm:group-hover:translate-y-0 sm:group-hover:opacity-100"
+                class="wish-btn absolute top-2 right-2 inline-flex h-9 w-9 items-center justify-center rounded-full bg-white/90 text-gray-700 shadow-sm transition duration-200 hover:scale-110 hover:bg-white hover:text-red-600 focus:ring-2 focus:ring-shop-primary-600 focus:outline-none active:scale-95 sm:translate-y-1 sm:opacity-0 sm:group-hover:translate-y-0 sm:group-hover:opacity-100"
                 :class="{ 'text-red-600': isWishlisted }"
                 @click="handleToggleWish"
             >
@@ -109,10 +121,10 @@ function handleBuyNow(): void {
             </button>
         </div>
 
-        <div class="flex flex-1 flex-col p-3 md:p-4">
+        <div class="flex flex-1 flex-col p-3.5 md:p-4">
             <Link :href="productShowUrl(product)" class="block">
                 <h3
-                    class="line-clamp-2 text-sm font-medium text-gray-900 transition-colors duration-200 group-hover:text-shop-primary-600 md:text-base"
+                    class="line-clamp-2 min-h-10 text-sm leading-5 font-semibold text-gray-900 transition-colors duration-200 group-hover:text-shop-primary-600 md:text-base"
                 >
                     {{ product.name }}
                 </h3>
@@ -137,16 +149,15 @@ function handleBuyNow(): void {
                         />
                     </svg>
                 </div>
-                <span class="text-xs text-gray-400"
+                <span class="text-xs text-gray-500"
                     >({{ product.reviews }})</span
                 >
             </div>
 
             <div class="mt-2 flex items-center gap-2">
-                <span
-                    class="text-base font-semibold text-shop-primary-600 md:text-lg"
-                    >{{ formatTaka(product.price) }}</span
-                >
+                <span class="text-base font-bold text-gray-900 md:text-lg">{{
+                    formatTaka(product.price)
+                }}</span>
                 <span
                     v-if="product.oldPrice"
                     class="text-xs text-gray-400 line-through"
@@ -159,7 +170,7 @@ function handleBuyNow(): void {
                     <button
                         v-if="product.inStock"
                         type="button"
-                        class="inline-flex w-full items-center justify-center gap-1.5 rounded-lg border border-shop-primary-600 px-3 py-2.5 text-sm font-medium text-shop-primary-600 transition hover:bg-shop-primary-50 focus:ring-2 focus:ring-shop-primary-600 focus:outline-none"
+                        class="inline-flex w-full items-center justify-center gap-1.5 rounded-full bg-shop-primary-600 px-3 py-2.5 text-sm font-semibold text-white transition hover:bg-shop-primary-700 focus:ring-2 focus:ring-shop-primary-600 focus:outline-none"
                         @click="handleAddToCart"
                     >
                         <svg
@@ -203,7 +214,7 @@ function handleBuyNow(): void {
                     <button
                         v-if="product.inStock"
                         type="button"
-                        class="w-full rounded-lg bg-shop-primary-600 px-3 py-2.5 text-sm font-semibold text-white transition hover:bg-shop-primary-700 focus:ring-2 focus:ring-shop-primary-600 focus:outline-none"
+                        class="w-full rounded-full border border-shop-primary-600/20 bg-shop-primary-50 px-3 py-2.5 text-sm font-semibold text-shop-primary-700 transition hover:bg-shop-primary-50 focus:ring-2 focus:ring-shop-primary-600 focus:outline-none"
                         @click="handleBuyNow"
                     >
                         Buy Now
@@ -215,7 +226,7 @@ function handleBuyNow(): void {
                         aria-disabled="true"
                         class="w-full cursor-not-allowed rounded-lg bg-gray-200 px-3 py-2.5 text-sm font-semibold text-gray-400"
                     >
-                        Notify Me
+                        Out of Stock
                     </button>
                 </div>
             </div>

@@ -6,6 +6,7 @@ use App\Concerns\OrderValidationRules;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\UpdateOrderRequest;
 use App\Models\Order;
+use App\Models\OrderItem;
 use App\Services\OrderService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -77,6 +78,10 @@ class OrderController extends Controller
 
         return Inertia::render('admin/orders/Show', [
             'order' => $this->detailPayload($order),
+            'invoiceStore' => [
+                'name' => config('app.name'),
+                'email' => config('mail.from.address'),
+            ],
             'statusOptions' => $this->statusOptions(self::orderStatuses()),
             'paymentStatusOptions' => $this->statusOptions(self::paymentStatuses()),
         ]);
@@ -145,22 +150,14 @@ class OrderController extends Controller
             'notes' => $order->notes,
             'subtotal' => (float) $order->subtotal,
             'delivery_charge' => (float) $order->delivery_charge,
+            'coupon_code' => $order->coupon_code,
+            'discount_amount' => (float) $order->discount_amount,
             'customer' => $order->user ? [
                 'id' => $order->user->id,
                 'name' => $order->user->name,
                 'email' => $order->user->email,
             ] : null,
-            'items' => $order->items
-                ->map(fn ($item): array => [
-                    'id' => $item->id,
-                    'product_id' => $item->product_id,
-                    'product_name' => $item->product_name,
-                    'unit_price' => (float) $item->unit_price,
-                    'quantity' => (int) $item->quantity,
-                    'line_total' => (float) $item->line_total,
-                ])
-                ->values()
-                ->all(),
+            'items' => $this->itemsWithDiscounts($order),
             'status_histories' => $order->statusHistories
                 ->sortByDesc('created_at')
                 ->values()
@@ -177,6 +174,62 @@ class OrderController extends Controller
                 ->all(),
             'updated_at' => $order->updated_at?->toIso8601String() ?? '',
         ];
+    }
+
+    /**
+     * @return list<array{
+     *     id: int,
+     *     product_id: int|null,
+     *     product_name: string,
+     *     unit_price: float,
+     *     quantity: int,
+     *     line_total: float,
+     *     discount_amount: float
+     * }>
+     */
+    private function itemsWithDiscounts(Order $order): array
+    {
+        $items = $order->items->values();
+        $itemsSubtotalInCents = (int) round($items->sum(
+            fn (OrderItem $item): float => (float) $item->line_total * 100,
+        ));
+        $discountInCents = (int) round(min(
+            max(0, (float) $order->discount_amount),
+            max(0, $itemsSubtotalInCents / 100),
+        ) * 100);
+        $remainingDiscountInCents = $discountInCents;
+        $lastDiscountableIndex = null;
+
+        foreach ($items as $index => $item) {
+            if ((float) $item->line_total > 0) {
+                $lastDiscountableIndex = $index;
+            }
+        }
+
+        return $items
+            ->map(function (OrderItem $item, int $index) use ($itemsSubtotalInCents, $discountInCents, $lastDiscountableIndex, &$remainingDiscountInCents): array {
+                $lineAmountInCents = (int) round((float) $item->line_total * 100);
+                $lineDiscountInCents = $itemsSubtotalInCents === 0 || $discountInCents === 0
+                    ? 0
+                    : ($index === $lastDiscountableIndex
+                        ? $remainingDiscountInCents
+                        : ($lineAmountInCents > 0
+                            ? (int) floor($discountInCents * $lineAmountInCents / $itemsSubtotalInCents)
+                            : 0));
+                $remainingDiscountInCents -= $lineDiscountInCents;
+
+                return [
+                    'id' => $item->id,
+                    'product_id' => $item->product_id,
+                    'product_name' => $item->product_name,
+                    'unit_price' => (float) $item->unit_price,
+                    'quantity' => (int) $item->quantity,
+                    'line_total' => (float) $item->line_total,
+                    'discount_amount' => $lineDiscountInCents / 100,
+                ];
+            })
+            ->all();
+
     }
 
     /**

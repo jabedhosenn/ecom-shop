@@ -104,6 +104,10 @@ export type ShopCart = {
     items: ShopCartItem[];
 };
 
+export type ShopAppliedCoupon = {
+    code: string;
+};
+
 export type ShopWishlistItem = ShopProduct & {
     id: number;
 };

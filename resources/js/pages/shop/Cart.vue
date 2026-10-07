@@ -7,18 +7,20 @@ import { useShopCart } from '@/composables/shop/useShopCart';
 import { useShopUi } from '@/composables/shop/useShopUi';
 import shop from '@/routes/shop';
 
-const {
-    cart,
-    cartQty,
-    cartSubtotal,
-    updateQty,
-    removeItem,
-    clearCart,
-} = useShopCart();
+const { cart, cartQty, updateQty, removeItem, clearCart } = useShopCart();
 const { showToast } = useShopUi();
+
+const { subtotal, coupon, discountAmount, total, couponError } = defineProps<{
+    subtotal: number;
+    coupon: { code: string } | null;
+    discountAmount: number;
+    total: number;
+    couponError: string | null;
+}>();
 
 function handleIncrement(productId: number): void {
     const item = cart.value.find((i) => i.productId === productId);
+
     if (item) {
         updateQty(productId, item.qty + 1);
     }
@@ -26,6 +28,7 @@ function handleIncrement(productId: number): void {
 
 function handleDecrement(productId: number): void {
     const item = cart.value.find((i) => i.productId === productId);
+
     if (item && item.qty > 1) {
         updateQty(productId, item.qty - 1);
     }
@@ -58,13 +61,29 @@ function handleClearCart(): void {
         />
     </Head>
 
-    <div class="bg-gray-50 py-6 md:py-10">
+    <div class="bg-[#f8f8f4] py-7 md:py-12">
         <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <ShopPageBreadcrumb :items="[{ label: 'Cart' }]" />
 
-            <h1 class="mb-6 text-2xl font-bold text-gray-900 md:text-3xl">
-                Shopping Cart
-            </h1>
+            <div class="mb-7 flex flex-wrap items-end justify-between gap-3">
+                <div>
+                    <p
+                        class="mb-2 text-xs font-semibold tracking-[0.18em] text-shop-primary-600 uppercase"
+                    >
+                        Your selection
+                    </p>
+                    <h1
+                        class="text-3xl font-bold tracking-tight text-gray-950 md:text-4xl"
+                    >
+                        Shopping cart
+                    </h1>
+                </div>
+                <span
+                    class="rounded-full border border-[#e4e6de] bg-white px-4 py-2 text-sm font-medium text-gray-600"
+                >
+                    {{ cartQty }} {{ cartQty === 1 ? 'item' : 'items' }}
+                </span>
+            </div>
 
             <div
                 v-if="cart.length > 0"
@@ -72,16 +91,14 @@ function handleClearCart(): void {
             >
                 <div class="lg:col-span-2">
                     <div
-                        class="overflow-hidden rounded-xl border border-gray-200 bg-white"
+                        class="overflow-hidden rounded-3xl border border-[#e7e8e1] bg-white shadow-sm"
                     >
                         <div
-                            class="hidden grid-cols-12 gap-4 border-b border-gray-100 px-5 py-3 text-xs font-semibold tracking-wide text-gray-400 uppercase sm:grid"
+                            class="hidden grid-cols-12 gap-4 border-b border-gray-100 bg-[#fafaf7] px-5 py-4 text-[11px] font-semibold tracking-[0.12em] text-gray-500 uppercase sm:grid"
                         >
                             <span class="col-span-6">Product</span>
                             <span class="col-span-2 text-center">Price</span>
-                            <span class="col-span-2 text-center"
-                                >Quantity</span
-                            >
+                            <span class="col-span-2 text-center">Quantity</span>
                             <span class="col-span-2 text-right">Total</span>
                         </div>
                         <ul class="divide-y divide-gray-100">
@@ -128,14 +145,18 @@ function handleClearCart(): void {
                 <div class="lg:col-span-1">
                     <ShopCartSummary
                         :item-count="cartQty"
-                        :subtotal="cartSubtotal"
+                        :subtotal="subtotal"
+                        :discount-amount="discountAmount"
+                        :coupon="coupon"
+                        :coupon-error="couponError"
+                        :total="total"
                     />
                 </div>
             </div>
 
             <div
                 v-else
-                class="rounded-xl border border-gray-200 bg-white py-16 text-center"
+                class="rounded-3xl border border-[#e7e8e1] bg-white px-5 py-16 text-center shadow-sm"
             >
                 <div
                     class="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-gray-100 text-gray-400"

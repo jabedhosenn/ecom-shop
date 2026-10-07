@@ -5,17 +5,28 @@ import ShopCheckoutSummary from '@/components/shop/ShopCheckoutSummary.vue';
 import ShopPageBreadcrumb from '@/components/shop/ShopPageBreadcrumb.vue';
 import { useShopCart } from '@/composables/shop/useShopCart';
 import { useShopUi } from '@/composables/shop/useShopUi';
-import type { ShopCheckoutConfig } from '@/types/shop';
 import shop from '@/routes/shop';
+import type { ShopAppliedCoupon, ShopCheckoutConfig } from '@/types/shop';
 
 type PaymentMethod = 'cod' | 'sslcommerz';
 
-const { districts, deliveryCharges } = defineProps<{
+const {
+    districts,
+    deliveryCharges,
+    subtotal,
+    coupon,
+    discountAmount,
+    couponError,
+} = defineProps<{
     districts: string[];
     deliveryCharges: ShopCheckoutConfig;
+    subtotal: number;
+    coupon: ShopAppliedCoupon | null;
+    discountAmount: number;
+    couponError: string | null;
 }>();
 
-const { cart, cartSubtotal, updateQty, removeItem } = useShopCart();
+const { cart, updateQty, removeItem } = useShopCart();
 const { showToast } = useShopUi();
 
 const form = useForm({
@@ -54,13 +65,12 @@ const deliveryNote = computed(() => {
 });
 
 const submitLabel = computed(() =>
-    form.payment_method === 'sslcommerz'
-        ? 'Proceed to Payment'
-        : 'Place Order',
+    form.payment_method === 'sslcommerz' ? 'Proceed to Payment' : 'Place Order',
 );
 
 function handleIncrement(productId: number): void {
     const item = cart.value.find((i) => i.productId === productId);
+
     if (item) {
         updateQty(productId, item.qty + 1);
     }
@@ -68,6 +78,7 @@ function handleIncrement(productId: number): void {
 
 function handleDecrement(productId: number): void {
     const item = cart.value.find((i) => i.productId === productId);
+
     if (item && item.qty > 1) {
         updateQty(productId, item.qty - 1);
     }
@@ -76,6 +87,7 @@ function handleDecrement(productId: number): void {
 function handleRemove(productId: number): void {
     const item = cart.value.find((i) => i.productId === productId);
     removeItem(productId);
+
     if (item) {
         showToast(`Removed: ${item.name}`);
     }
@@ -84,6 +96,7 @@ function handleRemove(productId: number): void {
 function handleSubmit(): void {
     if (cart.value.length === 0) {
         showToast('Your cart is empty');
+
         return;
     }
 
@@ -114,7 +127,7 @@ function handleSubmit(): void {
         />
     </Head>
 
-    <div class="bg-gray-50 py-6 md:py-10">
+    <div class="bg-[#f8f8f4] py-7 md:py-12">
         <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <ShopPageBreadcrumb
                 :items="[
@@ -123,20 +136,44 @@ function handleSubmit(): void {
                 ]"
             />
 
+            <div class="mb-7">
+                <p
+                    class="mb-2 text-xs font-semibold tracking-[0.18em] text-shop-primary-600 uppercase"
+                >
+                    Almost there
+                </p>
+                <h1
+                    class="text-3xl font-bold tracking-tight text-gray-950 md:text-4xl"
+                >
+                    Secure checkout
+                </h1>
+                <p class="mt-2 max-w-xl text-sm leading-6 text-gray-600">
+                    Add your contact and delivery details, then choose how you’d
+                    like to pay.
+                </p>
+            </div>
+
             <form
                 novalidate
-                class="grid grid-cols-1 gap-6 lg:grid-cols-3 lg:gap-8"
+                class="grid min-w-0 grid-cols-1 gap-5 lg:grid-cols-3 lg:gap-8"
                 @submit.prevent="handleSubmit"
             >
                 <div class="space-y-6 lg:col-span-2">
                     <section
-                        class="rounded-xl border border-gray-200 bg-white p-5 md:p-6"
+                        class="rounded-3xl border border-[#e7e8e1] bg-white p-5 shadow-sm md:p-7"
                     >
-                        <h2 class="text-lg font-semibold text-gray-900">
-                            Shipping Details
+                        <p
+                            class="mb-2 text-xs font-semibold tracking-[0.16em] text-shop-primary-600 uppercase"
+                        >
+                            Step 1
+                        </p>
+                        <h2
+                            class="text-xl font-bold tracking-tight text-gray-950"
+                        >
+                            Customer information
                         </h2>
                         <p class="mt-1 text-sm text-gray-500">
-                            Where should we deliver your order?
+                            How can we reach you about this order?
                         </p>
 
                         <div class="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -155,7 +192,7 @@ function handleSubmit(): void {
                                     type="text"
                                     required
                                     autocomplete="name"
-                                    class="w-full rounded-lg border px-4 py-2.5 text-sm text-gray-900 focus:ring-2 focus:ring-shop-primary-600 focus:outline-none"
+                                    class="w-full rounded-xl border px-4 py-3 text-sm text-gray-900 shadow-sm shadow-gray-950/[0.02] focus:ring-2 focus:ring-shop-primary-600 focus:outline-none"
                                     :class="
                                         form.errors.customer_name
                                             ? 'border-red-500 focus:ring-red-500'
@@ -186,7 +223,7 @@ function handleSubmit(): void {
                                     required
                                     autocomplete="tel"
                                     inputmode="numeric"
-                                    class="w-full rounded-lg border px-4 py-2.5 text-sm text-gray-900 focus:ring-2 focus:ring-shop-primary-600 focus:outline-none"
+                                    class="w-full rounded-xl border px-4 py-3 text-sm text-gray-900 shadow-sm shadow-gray-950/[0.02] focus:ring-2 focus:ring-shop-primary-600 focus:outline-none"
                                     :class="
                                         form.errors.phone
                                             ? 'border-red-500 focus:ring-red-500'
@@ -216,7 +253,7 @@ function handleSubmit(): void {
                                     type="email"
                                     required
                                     autocomplete="email"
-                                    class="w-full rounded-lg border px-4 py-2.5 text-sm text-gray-900 focus:ring-2 focus:ring-shop-primary-600 focus:outline-none"
+                                    class="w-full rounded-xl border px-4 py-3 text-sm text-gray-900 shadow-sm shadow-gray-950/[0.02] focus:ring-2 focus:ring-shop-primary-600 focus:outline-none"
                                     :class="
                                         form.errors.email
                                             ? 'border-red-500 focus:ring-red-500'
@@ -231,6 +268,26 @@ function handleSubmit(): void {
                                     {{ form.errors.email }}
                                 </p>
                             </div>
+                        </div>
+                    </section>
+
+                    <section
+                        class="rounded-3xl border border-[#e7e8e1] bg-white p-5 shadow-sm md:p-7"
+                    >
+                        <p
+                            class="mb-2 text-xs font-semibold tracking-[0.16em] text-shop-primary-600 uppercase"
+                        >
+                            Step 2
+                        </p>
+                        <h2
+                            class="text-xl font-bold tracking-tight text-gray-950"
+                        >
+                            Shipping information
+                        </h2>
+                        <p class="mt-1 text-sm text-gray-500">
+                            Enter the address where your order should arrive.
+                        </p>
+                        <div class="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2">
                             <div>
                                 <label
                                     for="district"
@@ -244,7 +301,7 @@ function handleSubmit(): void {
                                     v-model="form.district"
                                     name="district"
                                     required
-                                    class="w-full rounded-lg border bg-white px-4 py-2.5 text-sm text-gray-900 focus:ring-2 focus:ring-shop-primary-600 focus:outline-none"
+                                    class="w-full rounded-xl border bg-white px-4 py-3 text-sm text-gray-900 shadow-sm shadow-gray-950/[0.02] focus:ring-2 focus:ring-shop-primary-600 focus:outline-none"
                                     :class="
                                         form.errors.district
                                             ? 'border-red-500 focus:ring-red-500'
@@ -281,7 +338,7 @@ function handleSubmit(): void {
                                     name="area"
                                     type="text"
                                     required
-                                    class="w-full rounded-lg border px-4 py-2.5 text-sm text-gray-900 focus:ring-2 focus:ring-shop-primary-600 focus:outline-none"
+                                    class="w-full rounded-xl border px-4 py-3 text-sm text-gray-900 shadow-sm shadow-gray-950/[0.02] focus:ring-2 focus:ring-shop-primary-600 focus:outline-none"
                                     :class="
                                         form.errors.area
                                             ? 'border-red-500 focus:ring-red-500'
@@ -310,7 +367,7 @@ function handleSubmit(): void {
                                     name="address"
                                     rows="2"
                                     required
-                                    class="w-full rounded-lg border px-4 py-2.5 text-sm text-gray-900 focus:ring-2 focus:ring-shop-primary-600 focus:outline-none"
+                                    class="w-full rounded-xl border px-4 py-3 text-sm text-gray-900 shadow-sm shadow-gray-950/[0.02] focus:ring-2 focus:ring-shop-primary-600 focus:outline-none"
                                     :class="
                                         form.errors.address
                                             ? 'border-red-500 focus:ring-red-500'
@@ -331,14 +388,16 @@ function handleSubmit(): void {
                                     class="mb-1.5 block text-sm font-medium text-gray-700"
                                 >
                                     Order notes
-                                    <span class="text-gray-400">(optional)</span>
+                                    <span class="text-gray-400"
+                                        >(optional)</span
+                                    >
                                 </label>
                                 <textarea
                                     id="notes"
                                     v-model="form.notes"
                                     name="notes"
                                     rows="2"
-                                    class="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm text-gray-900 focus:border-shop-primary-600 focus:ring-2 focus:ring-shop-primary-600 focus:outline-none"
+                                    class="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 shadow-sm shadow-gray-950/[0.02] focus:border-shop-primary-600 focus:ring-2 focus:ring-shop-primary-600 focus:outline-none"
                                     placeholder="Delivery instructions, preferred time, etc."
                                 />
                             </div>
@@ -346,10 +405,17 @@ function handleSubmit(): void {
                     </section>
 
                     <section
-                        class="rounded-xl border border-gray-200 bg-white p-5 md:p-6"
+                        class="rounded-3xl border border-[#e7e8e1] bg-white p-5 shadow-sm md:p-7"
                     >
-                        <h2 class="text-lg font-semibold text-gray-900">
-                            Payment Method
+                        <p
+                            class="mb-2 text-xs font-semibold tracking-[0.16em] text-shop-primary-600 uppercase"
+                        >
+                            Step 3
+                        </p>
+                        <h2
+                            class="text-xl font-bold tracking-tight text-gray-950"
+                        >
+                            Payment method
                         </h2>
                         <p class="mt-1 text-sm text-gray-500">
                             Choose how you would like to pay for your order.
@@ -385,7 +451,9 @@ function handleSubmit(): void {
                                     />
                                 </svg>
                                 <div>
-                                    <p class="text-sm font-semibold text-gray-900">
+                                    <p
+                                        class="text-sm font-semibold text-gray-900"
+                                    >
                                         Cash on Delivery
                                     </p>
                                     <p class="mt-1 text-sm text-gray-500">
@@ -424,7 +492,9 @@ function handleSubmit(): void {
                                     />
                                 </svg>
                                 <div>
-                                    <p class="text-sm font-semibold text-gray-900">
+                                    <p
+                                        class="text-sm font-semibold text-gray-900"
+                                    >
                                         Pay Online (SSLCommerz)
                                     </p>
                                     <p class="mt-1 text-sm text-gray-500">
@@ -448,7 +518,10 @@ function handleSubmit(): void {
                     <div class="lg:sticky lg:top-24">
                         <ShopCheckoutSummary
                             :items="cart"
-                            :subtotal="cartSubtotal"
+                            :subtotal="subtotal"
+                            :discount-amount="discountAmount"
+                            :coupon="coupon"
+                            :coupon-error="couponError"
                             :delivery-charge="deliveryCharge"
                             :delivery-note="deliveryNote"
                             :is-empty="cart.length === 0"

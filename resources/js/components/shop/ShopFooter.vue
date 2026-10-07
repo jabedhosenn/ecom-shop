@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { computed } from 'vue';
 import { Link } from '@inertiajs/vue3';
+import { computed } from 'vue';
 import ShopLogo from '@/components/shop/ShopLogo.vue';
 import { home } from '@/routes';
 import shop from '@/routes/shop';
@@ -9,12 +9,14 @@ const year = computed(() => new Date().getFullYear());
 </script>
 
 <template>
-    <footer class="bg-gray-900 text-gray-300">
+    <footer class="bg-[#102c25] text-gray-300">
         <div class="mx-auto max-w-7xl px-4 py-12 sm:px-6 md:py-16 lg:px-8">
-            <div class="grid grid-cols-1 gap-8 md:grid-cols-4">
+            <div
+                class="grid grid-cols-1 gap-10 border-b border-white/10 pb-10 sm:grid-cols-2 lg:grid-cols-4"
+            >
                 <div>
                     <ShopLogo variant="dark" />
-                    <p class="mt-4 text-sm leading-relaxed text-gray-400">
+                    <p class="mt-4 max-w-xs text-sm leading-6 text-gray-400">
                         Quality products delivered across Bangladesh. Shop with
                         confidence — Cash on Delivery and secure online payment
                         available.

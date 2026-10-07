@@ -21,12 +21,13 @@ const categories = computed(
     () => (page.props.categories as ShopCategory[] | undefined) ?? [],
 );
 const bestSellingProducts = computed(
-    () =>
-        (page.props.bestSellingProducts as ShopProduct[] | undefined) ?? [],
+    () => (page.props.bestSellingProducts as ShopProduct[] | undefined) ?? [],
 );
 const newCollectionProducts = computed(
-    () =>
-        (page.props.newCollectionProducts as ShopProduct[] | undefined) ?? [],
+    () => (page.props.newCollectionProducts as ShopProduct[] | undefined) ?? [],
+);
+const latestProducts = computed(
+    () => (page.props.latestProducts as ShopProduct[] | undefined) ?? [],
 );
 
 const hasStorefrontData = computed(
@@ -34,7 +35,8 @@ const hasStorefrontData = computed(
         heroSlides.value.length > 0 ||
         categories.value.length > 0 ||
         bestSellingProducts.value.length > 0 ||
-        newCollectionProducts.value.length > 0,
+        newCollectionProducts.value.length > 0 ||
+        latestProducts.value.length > 0,
 );
 </script>
 
@@ -42,7 +44,7 @@ const hasStorefrontData = computed(
     <Head title="Home">
         <meta
             name="description"
-            content="ShopEase — shop the best of electronics, fashion, home & more. Cash on Delivery and online payment across Bangladesh."
+            content="Explore current products and categories in the ShopEase store. Cash on Delivery and online payment are available across Bangladesh."
         />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link
@@ -73,17 +75,25 @@ const hasStorefrontData = computed(
     <ShopProductSection
         v-if="bestSellingProducts.length > 0"
         id="bestselling"
-        title="Best selling"
-        description="Loved most by our customers this month."
+        title="Best sellers"
+        description="Products marked as best sellers in the store."
         :products="bestSellingProducts"
         background="gray"
     />
     <ShopProductSection
         v-if="newCollectionProducts.length > 0"
         id="newcollection"
-        title="New collection"
-        description="Just landed — be the first to grab them."
+        title="Featured collection"
+        description="Explore more products selected by the store."
         :products="newCollectionProducts"
+        background="gray"
+    />
+    <ShopProductSection
+        v-if="latestProducts.length > 0"
+        id="latestproducts"
+        title="Latest products"
+        description="Recently added to the store catalog."
+        :products="latestProducts"
     />
     <ShopNewsletter />
 </template>

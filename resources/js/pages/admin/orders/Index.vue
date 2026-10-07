@@ -2,13 +2,20 @@
 import { Head, Link } from '@inertiajs/vue3';
 import {
     Banknote,
+    CalendarClock,
+    CheckCircle2,
+    Clock3,
     CreditCard,
     Eye,
     Filter,
     PackageSearch,
+    Phone,
     RotateCcw,
     Search,
+    ShoppingBag,
+    Wallet,
 } from '@lucide/vue';
+import { computed } from 'vue';
 import Heading from '@/components/Heading.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -89,7 +96,7 @@ function formatDate(value: string | null): string {
     return new Date(value).toLocaleString();
 }
 
-/* ---- Color helpers (visual only) ---- */
+/* ---- Visual-only helpers ---- */
 function orderStatusClass(status: string): string {
     switch (status) {
         case 'delivered':
@@ -128,6 +135,25 @@ function orderDotClass(status: string): string {
     }
 }
 
+function orderAccentClass(status: string): string {
+    switch (status) {
+        case 'delivered':
+            return 'border-l-emerald-500';
+        case 'cancelled':
+            return 'border-l-red-500';
+        case 'pending':
+            return 'border-l-amber-500';
+        case 'processing':
+            return 'border-l-blue-500';
+        case 'shipped':
+            return 'border-l-violet-500';
+        case 'confirmed':
+            return 'border-l-sky-500';
+        default:
+            return 'border-l-slate-300';
+    }
+}
+
 function paymentStatusClass(status: string): string {
     switch (status) {
         case 'paid':
@@ -153,6 +179,61 @@ function initials(name: string): string {
         .map((part) => part.charAt(0).toUpperCase())
         .join('');
 }
+
+/* Summary cards (calculated from the orders shown on this page) */
+const summary = computed(() => {
+    const list = props.orders;
+
+    return {
+        total: list.length,
+        pending: list.filter((order) => order.status === 'pending').length,
+        delivered: list.filter((order) => order.status === 'delivered').length,
+        revenue: list.reduce((sum, order) => sum + Number(order.total || 0), 0),
+    };
+});
+
+const statCards = computed(() => [
+    {
+        key: 'total',
+        label: 'Total orders',
+        value: String(summary.value.total),
+        icon: ShoppingBag,
+        iconClass:
+            'bg-indigo-100 text-indigo-600 dark:bg-indigo-500/15 dark:text-indigo-300',
+        barClass: 'from-indigo-500 to-blue-500',
+        glowClass: 'bg-indigo-500/10',
+    },
+    {
+        key: 'pending',
+        label: 'Pending',
+        value: String(summary.value.pending),
+        icon: Clock3,
+        iconClass:
+            'bg-amber-100 text-amber-600 dark:bg-amber-500/15 dark:text-amber-300',
+        barClass: 'from-amber-400 to-orange-500',
+        glowClass: 'bg-amber-500/10',
+    },
+    {
+        key: 'delivered',
+        label: 'Delivered',
+        value: String(summary.value.delivered),
+        icon: CheckCircle2,
+        iconClass:
+            'bg-emerald-100 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-300',
+        barClass: 'from-emerald-400 to-teal-500',
+        glowClass: 'bg-emerald-500/10',
+    },
+    {
+        key: 'revenue',
+        label: 'Order value',
+        value: formatTaka(summary.value.revenue),
+        icon: Wallet,
+        iconClass:
+            'bg-rose-100 text-rose-600 dark:bg-rose-500/15 dark:text-rose-300',
+        barClass: 'from-rose-400 to-pink-500',
+        glowClass: 'bg-rose-500/10',
+    },
+]);
 </script>
 
 <template>
@@ -161,17 +242,70 @@ function initials(name: string): string {
     <div
         class="flex h-full flex-1 flex-col gap-6 overflow-x-auto rounded-xl p-4 md:p-6"
     >
-        <div class="flex flex-wrap items-end justify-between gap-3">
-            <Heading
-                title="Orders"
-                description="View and manage customer orders"
+        <!-- Banner header -->
+        <div
+            class="relative overflow-hidden rounded-2xl border border-indigo-100 bg-gradient-to-r from-indigo-50 via-white to-violet-50 p-5 shadow-sm dark:border-indigo-500/20 dark:from-indigo-500/10 dark:via-transparent dark:to-violet-500/10 md:p-6"
+        >
+            <div
+                class="pointer-events-none absolute -right-10 -top-10 size-40 rounded-full bg-indigo-400/10 blur-2xl"
             />
             <div
-                class="inline-flex items-center gap-2 rounded-full border border-indigo-200 bg-indigo-50 px-3 py-1 text-xs font-medium text-indigo-700 dark:border-indigo-500/30 dark:bg-indigo-500/10 dark:text-indigo-300"
+                class="relative flex flex-wrap items-center justify-between gap-4"
             >
-                <PackageSearch class="size-3.5" />
-                {{ orders.length }}
-                {{ orders.length === 1 ? 'order' : 'orders' }}
+                <div class="flex items-center gap-4">
+                    <div
+                        class="hidden size-12 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 text-white shadow-md sm:flex"
+                    >
+                        <ShoppingBag class="size-6" />
+                    </div>
+                    <Heading
+                        title="Orders"
+                        description="View and manage customer orders"
+                    />
+                </div>
+                <div
+                    class="inline-flex items-center gap-2 rounded-full border border-indigo-200 bg-white/80 px-3.5 py-1.5 text-xs font-semibold text-indigo-700 shadow-sm backdrop-blur dark:border-indigo-500/30 dark:bg-indigo-500/10 dark:text-indigo-300"
+                >
+                    <PackageSearch class="size-4" />
+                    {{ orders.length }}
+                    {{ orders.length === 1 ? 'order' : 'orders' }}
+                </div>
+            </div>
+        </div>
+
+        <!-- Summary cards -->
+        <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            <div
+                v-for="card in statCards"
+                :key="card.key"
+                class="group relative overflow-hidden rounded-xl border border-sidebar-border/70 bg-card p-5 shadow-sm transition-shadow hover:shadow-md dark:border-sidebar-border"
+            >
+                <div
+                    class="absolute inset-x-0 top-0 h-1 bg-gradient-to-r"
+                    :class="card.barClass"
+                />
+                <div
+                    class="pointer-events-none absolute -right-6 -top-6 size-24 rounded-full blur-xl"
+                    :class="card.glowClass"
+                />
+                <div class="relative flex items-center gap-4">
+                    <div
+                        class="flex size-12 shrink-0 items-center justify-center rounded-xl"
+                        :class="card.iconClass"
+                    >
+                        <component :is="card.icon" class="size-5" />
+                    </div>
+                    <div class="min-w-0">
+                        <p
+                            class="text-xs font-semibold uppercase tracking-wide text-muted-foreground"
+                        >
+                            {{ card.label }}
+                        </p>
+                        <p class="truncate text-2xl font-bold">
+                            {{ card.value }}
+                        </p>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -185,7 +319,7 @@ function initials(name: string): string {
                 <Label for="search" class="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Search</Label>
                 <div class="relative">
                     <Search
-                        class="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
+                        class="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-indigo-500"
                     />
                     <Input
                         id="search"
@@ -238,7 +372,7 @@ function initials(name: string): string {
             <div class="flex items-end gap-2">
                 <Button
                     type="submit"
-                    class="h-10 gap-2 bg-indigo-600 text-white hover:bg-indigo-700"
+                    class="h-10 gap-2 bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-sm hover:from-indigo-700 hover:to-violet-700"
                 >
                     <Filter class="size-4" />
                     Filter
@@ -252,16 +386,16 @@ function initials(name: string): string {
             </div>
         </form>
 
-        <!-- Table -->
+        <!-- Desktop table -->
         <div
-            class="overflow-hidden rounded-xl border border-sidebar-border/70 bg-card shadow-sm dark:border-sidebar-border"
+            class="hidden overflow-hidden rounded-xl border border-sidebar-border/70 bg-card shadow-sm md:block dark:border-sidebar-border"
         >
             <div class="overflow-x-auto">
                 <table class="w-full min-w-[1100px] text-sm">
                     <thead
-                        class="border-b bg-gradient-to-r from-indigo-50 to-slate-50 text-left dark:from-indigo-500/10 dark:to-transparent"
+                        class="border-b bg-gradient-to-r from-indigo-600 to-violet-600 text-left text-white"
                     >
-                        <tr class="text-xs uppercase tracking-wide text-muted-foreground">
+                        <tr class="text-xs uppercase tracking-wide">
                             <th class="px-4 py-3.5 font-semibold">Order</th>
                             <th class="px-4 py-3.5 font-semibold">Customer</th>
                             <th class="px-4 py-3.5 font-semibold">Items</th>
@@ -278,7 +412,8 @@ function initials(name: string): string {
                         <tr
                             v-for="order in orders"
                             :key="order.id"
-                            class="transition-colors hover:bg-indigo-50/40 dark:hover:bg-indigo-500/5"
+                            class="border-l-4 transition-colors even:bg-muted/30 hover:bg-indigo-50/60 dark:hover:bg-indigo-500/10"
+                            :class="orderAccentClass(order.status)"
                         >
                             <td class="px-4 py-3.5">
                                 <p class="font-semibold text-indigo-700 dark:text-indigo-300">
@@ -301,7 +436,7 @@ function initials(name: string): string {
                             <td class="px-4 py-3.5">
                                 <div class="flex items-center gap-3">
                                     <div
-                                        class="flex size-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-violet-500 text-xs font-semibold text-white"
+                                        class="flex size-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-violet-500 text-xs font-semibold text-white ring-2 ring-white dark:ring-transparent"
                                     >
                                         {{ initials(order.customer_name) }}
                                     </div>
@@ -309,7 +444,10 @@ function initials(name: string): string {
                                         <p class="font-medium">
                                             {{ order.customer_name }}
                                         </p>
-                                        <p class="text-xs text-muted-foreground">
+                                        <p
+                                            class="inline-flex items-center gap-1 text-xs text-muted-foreground"
+                                        >
+                                            <Phone class="size-3" />
                                             {{ order.phone }}
                                         </p>
                                     </div>
@@ -348,7 +486,10 @@ function initials(name: string): string {
                                 </Badge>
                             </td>
                             <td class="px-4 py-3.5 text-xs text-muted-foreground">
-                                {{ formatDate(order.placed_at) }}
+                                <span class="inline-flex items-center gap-1">
+                                    <CalendarClock class="size-3.5" />
+                                    {{ formatDate(order.placed_at) }}
+                                </span>
                             </td>
                             <td class="px-4 py-3.5">
                                 <div
@@ -358,7 +499,7 @@ function initials(name: string): string {
                                         as-child
                                         variant="outline"
                                         size="sm"
-                                        class="gap-1.5 border-indigo-200 text-indigo-700 hover:bg-indigo-50 hover:text-indigo-800 dark:border-indigo-500/30 dark:text-indigo-300 dark:hover:bg-indigo-500/10"
+                                        class="gap-1.5 border-indigo-200 text-indigo-700 hover:bg-indigo-600 hover:text-white dark:border-indigo-500/30 dark:text-indigo-300 dark:hover:bg-indigo-500"
                                     >
                                         <Link :href="show(order.id)">
                                             <Eye class="size-4" />
@@ -371,9 +512,9 @@ function initials(name: string): string {
                         <tr v-if="orders.length === 0">
                             <td colspan="8" class="px-4 py-14 text-center">
                                 <div
-                                    class="mx-auto flex size-12 items-center justify-center rounded-full bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-300"
+                                    class="mx-auto flex size-14 items-center justify-center rounded-full bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-300"
                                 >
-                                    <PackageSearch class="size-6" />
+                                    <PackageSearch class="size-7" />
                                 </div>
                                 <p class="mt-3 font-medium">No orders found.</p>
                                 <p class="text-xs text-muted-foreground">
@@ -383,6 +524,113 @@ function initials(name: string): string {
                         </tr>
                     </tbody>
                 </table>
+            </div>
+
+            <div
+                v-if="orders.length > 0"
+                class="flex items-center justify-between border-t bg-muted/30 px-4 py-3 text-xs text-muted-foreground"
+            >
+                <span>
+                    Showing
+                    <span class="font-semibold text-foreground">{{ orders.length }}</span>
+                    {{ orders.length === 1 ? 'order' : 'orders' }}
+                </span>
+                <span>
+                    Total value
+                    <span class="font-semibold text-emerald-700 dark:text-emerald-400">{{ formatTaka(summary.revenue) }}</span>
+                </span>
+            </div>
+        </div>
+
+        <!-- Mobile cards -->
+        <div class="grid gap-3 md:hidden">
+            <div
+                v-for="order in orders"
+                :key="`m-${order.id}`"
+                class="rounded-xl border border-l-4 border-sidebar-border/70 bg-card p-4 shadow-sm dark:border-sidebar-border"
+                :class="orderAccentClass(order.status)"
+            >
+                <div class="flex items-start justify-between gap-2">
+                    <div>
+                        <p class="font-semibold text-indigo-700 dark:text-indigo-300">
+                            {{ order.order_number }}
+                        </p>
+                        <p class="text-xs text-muted-foreground">
+                            {{ formatDate(order.placed_at) }}
+                        </p>
+                    </div>
+                    <Badge
+                        variant="outline"
+                        class="gap-1.5 capitalize"
+                        :class="orderStatusClass(order.status)"
+                    >
+                        <span
+                            class="size-1.5 rounded-full"
+                            :class="orderDotClass(order.status)"
+                        />
+                        {{ order.status }}
+                    </Badge>
+                </div>
+
+                <div class="mt-3 flex items-center gap-3">
+                    <div
+                        class="flex size-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-violet-500 text-xs font-semibold text-white"
+                    >
+                        {{ initials(order.customer_name) }}
+                    </div>
+                    <div>
+                        <p class="font-medium">{{ order.customer_name }}</p>
+                        <p class="text-xs text-muted-foreground">
+                            {{ order.phone }}
+                        </p>
+                    </div>
+                </div>
+
+                <div class="mt-3 flex flex-wrap items-center gap-2">
+                    <Badge
+                        variant="outline"
+                        class="capitalize"
+                        :class="paymentStatusClass(order.payment_status)"
+                    >
+                        {{ order.payment_status }}
+                    </Badge>
+                    <span class="text-xs text-muted-foreground">
+                        {{ paymentMethodLabel(order.payment_method) }} ·
+                        {{ order.items_count }} items
+                    </span>
+                </div>
+
+                <div class="mt-4 flex items-center justify-between border-t pt-3">
+                    <p class="font-semibold text-emerald-700 dark:text-emerald-400">
+                        {{ formatTaka(order.total) }}
+                    </p>
+                    <Button
+                        as-child
+                        variant="outline"
+                        size="sm"
+                        class="gap-1.5 border-indigo-200 text-indigo-700 hover:bg-indigo-50 dark:border-indigo-500/30 dark:text-indigo-300"
+                    >
+                        <Link :href="show(order.id)">
+                            <Eye class="size-4" />
+                            View
+                        </Link>
+                    </Button>
+                </div>
+            </div>
+
+            <div
+                v-if="orders.length === 0"
+                class="rounded-xl border bg-card px-4 py-12 text-center"
+            >
+                <div
+                    class="mx-auto flex size-12 items-center justify-center rounded-full bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-300"
+                >
+                    <PackageSearch class="size-6" />
+                </div>
+                <p class="mt-3 font-medium">No orders found.</p>
+                <p class="text-xs text-muted-foreground">
+                    Try changing or resetting your filters.
+                </p>
             </div>
         </div>
     </div>

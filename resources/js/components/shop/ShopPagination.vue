@@ -12,14 +12,14 @@ const pages = computed(() =>
 <template>
     <nav
         v-if="totalPages > 1"
-        class="mt-10 flex items-center justify-center gap-1.5"
+        class="mt-10 flex flex-wrap items-center justify-center gap-2"
         aria-label="Pagination"
     >
         <button
             type="button"
             :disabled="page === 1"
             aria-label="Previous page"
-            class="inline-flex h-10 min-w-[2.5rem] items-center justify-center rounded-lg border px-3 text-sm font-medium transition"
+            class="inline-flex h-10 min-w-[2.5rem] items-center justify-center rounded-full border px-3 text-sm font-medium transition"
             :class="
                 page === 1
                     ? 'cursor-not-allowed border-gray-300 text-gray-700 opacity-40'
@@ -34,7 +34,7 @@ const pages = computed(() =>
             v-for="pageNumber in pages"
             :key="pageNumber"
             type="button"
-            class="inline-flex h-10 min-w-[2.5rem] items-center justify-center rounded-lg border px-3 text-sm font-medium transition"
+            class="inline-flex h-10 min-w-[2.5rem] items-center justify-center rounded-full border px-3 text-sm font-medium transition"
             :class="
                 pageNumber === page
                     ? 'border-shop-primary-600 bg-shop-primary-600 text-white'

@@ -19,12 +19,12 @@ const productHref = productShowUrl(item);
 
 <template>
     <li
-        class="grid grid-cols-1 gap-3 px-5 py-4 sm:grid-cols-12 sm:items-center sm:gap-4"
+        class="grid grid-cols-1 gap-3 px-4 py-5 transition-colors hover:bg-[#fbfcf9] sm:grid-cols-12 sm:items-center sm:gap-4 sm:px-5"
     >
         <div class="flex items-center gap-3 sm:col-span-6">
             <Link
                 :href="productHref"
-                class="h-20 w-20 shrink-0 overflow-hidden rounded-lg border border-gray-200 bg-gray-100"
+                class="h-20 w-20 shrink-0 overflow-hidden rounded-2xl border border-gray-100 bg-[#f3f4ee]"
             >
                 <img
                     :src="item.img"

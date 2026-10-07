@@ -14,6 +14,7 @@ test('shop home page renders with inertia', function () {
             ->has('categories', 6)
             ->has('bestSellingProducts', 4)
             ->has('newCollectionProducts', 4)
+            ->has('latestProducts')
             ->has('bestSellingProducts.0', fn (Assert $product) => $product
                 ->has('id')
                 ->has('name')

@@ -61,6 +61,7 @@ class DashboardController extends Controller
                 'orders_change_percent' => $this->percentChange((float) $currentMonthOrders, (float) $previousMonthOrders),
                 'average_order_value' => $averageOrderValue,
                 'pending_orders' => Order::query()->where('status', 'pending')->count(),
+                'completed_orders' => Order::query()->where('status', 'delivered')->count(),
                 'total_customers' => User::query()->where('role', 'customer')->count(),
                 'new_customers_this_month' => User::query()
                     ->where('role', 'customer')

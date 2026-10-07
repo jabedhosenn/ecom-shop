@@ -5,21 +5,86 @@ namespace App\Http\Controllers\Storefront;
 use App\Http\Controllers\Controller;
 use App\Models\Product;
 use App\Services\CartService;
+use App\Services\CouponService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class CartController extends Controller
 {
-    public function __construct(private readonly CartService $cartService) {}
+    public function __construct(
+        private readonly CartService $cartService,
+        private readonly CouponService $couponService,
+    ) {}
 
     /**
      * Display the shopping cart page.
      */
     public function index(): Response
     {
-        return Inertia::render('shop/Cart');
+        $subtotal = $this->cartService->subtotal();
+        $coupon = null;
+        $couponError = null;
+        $discountAmount = 0.0;
+        $couponCode = $this->cartService->couponCode();
+
+        if ($couponCode !== null && $this->cartService->totalQty() > 0) {
+            try {
+                $result = $this->couponService->calculate($couponCode, $subtotal);
+                $coupon = ['code' => $result['coupon']->code];
+                $discountAmount = $result['discount_amount'];
+            } catch (ValidationException $exception) {
+                $this->cartService->clearCoupon();
+                $couponError = $exception->errors()['coupon_code'][0];
+            }
+        } elseif ($couponCode !== null) {
+            $this->cartService->clearCoupon();
+        }
+
+        return Inertia::render('shop/Cart', [
+            'subtotal' => $subtotal,
+            'coupon' => $coupon,
+            'discountAmount' => $discountAmount,
+            'total' => max(0, round($subtotal - $discountAmount, 2)),
+            'couponError' => $couponError,
+        ]);
+    }
+
+    /**
+     * Apply a coupon to the current cart.
+     */
+    public function applyCoupon(Request $request): RedirectResponse
+    {
+        $data = $request->validate([
+            'coupon_code' => ['required', 'string', 'max:50'],
+        ]);
+
+        if ($this->cartService->items() === []) {
+            throw ValidationException::withMessages([
+                'coupon_code' => 'Add items to your cart before applying a coupon.',
+            ]);
+        }
+
+        $result = $this->couponService->calculate(
+            $data['coupon_code'],
+            $this->cartService->subtotal(),
+        );
+
+        $this->cartService->setCouponCode($result['coupon']->code);
+
+        return back();
+    }
+
+    /**
+     * Remove the applied coupon from the current cart.
+     */
+    public function removeCoupon(): RedirectResponse
+    {
+        $this->cartService->clearCoupon();
+
+        return back();
     }
 
     /**

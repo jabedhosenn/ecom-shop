@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
 import { Head, usePage } from '@inertiajs/vue3';
+import { computed, ref } from 'vue';
 import ShopMobileProductBar from '@/components/shop/ShopMobileProductBar.vue';
 import ShopProductBreadcrumb from '@/components/shop/ShopProductBreadcrumb.vue';
 import ShopProductGallery from '@/components/shop/ShopProductGallery.vue';
@@ -40,16 +40,18 @@ const quantity = ref(1);
             />
         </Head>
 
-        <div class="pb-24 lg:pb-0">
+        <div class="bg-[#f8f8f4] pb-24 lg:pb-0">
             <ShopProductBreadcrumb
                 :category="product.category"
                 :category-href="product.categoryHref"
                 :product-name="product.name"
             />
 
-            <section class="mx-auto max-w-7xl px-4 py-8 sm:px-6 md:py-12 lg:px-8">
+            <section
+                class="mx-auto max-w-7xl px-4 py-6 sm:px-6 md:py-10 lg:px-8"
+            >
                 <div
-                    class="grid grid-cols-1 gap-8 lg:grid-cols-2 lg:items-start lg:gap-12"
+                    class="grid grid-cols-1 items-start gap-5 lg:grid-cols-2 lg:gap-8"
                 >
                     <ShopProductGallery
                         :images="product.images"
@@ -69,9 +71,6 @@ const quantity = ref(1);
             />
         </div>
 
-        <ShopMobileProductBar
-            :product="product"
-            v-model:quantity="quantity"
-        />
+        <ShopMobileProductBar :product="product" v-model:quantity="quantity" />
     </template>
 </template>

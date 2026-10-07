@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Coupon;
 use App\Models\Order;
 use App\Models\Payment;
 use App\Models\Product;
@@ -85,6 +86,52 @@ test('sslcommerz checkout uses inertia location for external gateway redirect', 
     ])
         ->assertStatus(409)
         ->assertHeader('X-Inertia-Location', 'https://sandbox.sslcommerz.com/EasyCheckOut/test-gateway');
+});
+
+test('sslcommerz receives the server calculated total after a cart coupon is applied', function () {
+    Http::fake([
+        'sandbox.sslcommerz.com/gwprocess/v4/api.php' => Http::response([
+            'status' => 'SUCCESS',
+            'GatewayPageURL' => 'https://sandbox.sslcommerz.com/EasyCheckOut/test-gateway',
+            'sessionkey' => 'test-session-key',
+        ]),
+    ]);
+
+    $this->seed(DatabaseSeeder::class);
+
+    $product = Product::query()
+        ->where('is_active', true)
+        ->where('stock_status', 'in_stock')
+        ->firstOrFail();
+    $coupon = Coupon::query()->create([
+        'code' => 'ONLINE10',
+        'discount_type' => 'percentage',
+        'discount_value' => 10,
+    ]);
+
+    $this->post(route('shop.cart.store'), [
+        'product_id' => $product->id,
+        'qty' => 2,
+    ]);
+    $this->post(route('shop.cart.coupon.apply'), ['coupon_code' => $coupon->code]);
+
+    $this->post(route('shop.checkout.store'), sslcommerzCheckoutPayload([
+        'subtotal' => 0,
+        'discount_amount' => 0,
+        'total' => 0,
+    ]))->assertRedirect('https://sandbox.sslcommerz.com/EasyCheckOut/test-gateway');
+
+    $order = Order::query()->firstOrFail();
+    $expectedSubtotal = round((float) $product->price * 2, 2);
+    $expectedDiscount = round($expectedSubtotal * 0.1, 2);
+    $payment = Payment::query()->where('order_id', $order->id)->firstOrFail();
+
+    expect((float) $order->subtotal)->toBe($expectedSubtotal)
+        ->and((float) $order->discount_amount)->toBe($expectedDiscount)
+        ->and((float) $order->total)->toBe(round($expectedSubtotal - $expectedDiscount + $order->delivery_charge, 2))
+        ->and((float) $payment->amount)->toBe((float) $order->total)
+        ->and($order->coupon_code)->toBe($coupon->code)
+        ->and($coupon->fresh()->used_count)->toBe(1);
 });
 
 test('payment success page renders with order details', function () {

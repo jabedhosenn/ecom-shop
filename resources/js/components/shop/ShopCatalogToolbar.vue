@@ -10,15 +10,17 @@ function handleSortChange(event: Event): void {
 </script>
 
 <template>
-    <div class="mb-5 flex items-center justify-between gap-3">
+    <div
+        class="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[#e7e8e1] bg-white p-3.5 shadow-sm sm:p-4"
+    >
         <p class="text-sm text-gray-600">
-            <span class="font-semibold text-gray-900">{{ total }}</span>
-            products
+            <span class="font-bold text-gray-950">{{ total }}</span>
+            {{ total === 1 ? 'product' : 'products' }}
         </p>
         <div class="flex items-center gap-2">
             <button
                 type="button"
-                class="inline-flex items-center gap-2 rounded-lg border border-gray-300 px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 lg:hidden"
+                class="inline-flex items-center gap-2 rounded-full border border-gray-200 px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 lg:hidden"
                 @click="openFilterDrawer"
             >
                 <svg
@@ -37,13 +39,15 @@ function handleSortChange(event: Event): void {
                 Filters
             </button>
             <div class="flex items-center gap-2">
-                <label for="sortSelect" class="hidden text-sm text-gray-500 sm:block"
+                <label
+                    for="sortSelect"
+                    class="hidden text-sm text-gray-500 sm:block"
                     >Sort:</label
                 >
                 <select
                     id="sortSelect"
                     :value="sort"
-                    class="rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 focus:border-shop-primary-600 focus:ring-2 focus:ring-shop-primary-600 focus:outline-none"
+                    class="rounded-full border border-gray-200 bg-[#fafaf7] px-4 py-2.5 text-sm text-gray-900 focus:border-shop-primary-600 focus:ring-2 focus:ring-shop-primary-600 focus:outline-none"
                     @change="handleSortChange"
                 >
                     <option value="newest">Newest</option>

@@ -57,13 +57,17 @@ function goToReviews(): void {
 </script>
 
 <template>
-    <div>
+    <div
+        class="rounded-3xl border border-[#e8e9e2] bg-white p-5 shadow-sm sm:p-7 lg:p-8"
+    >
         <a
             :href="product.categoryHref"
             class="text-sm font-medium text-shop-primary-600 hover:text-shop-primary-700"
             >{{ product.category }}</a
         >
-        <h1 class="mt-2 text-2xl font-bold text-gray-900 md:text-3xl">
+        <h1
+            class="mt-3 text-3xl leading-tight font-bold tracking-tight text-gray-950 md:text-4xl"
+        >
             {{ product.name }}
         </h1>
 
@@ -82,15 +86,21 @@ function goToReviews(): void {
             <span class="text-gray-300">|</span>
             <span
                 v-if="product.inStock"
-                class="rounded-full bg-green-50 px-2.5 py-1 text-xs font-medium text-green-700"
-                >In Stock</span
+                class="rounded-full bg-shop-primary-50 px-3 py-1 text-xs font-semibold text-shop-primary-700"
+                >Available</span
+            >
+            <span
+                v-else
+                class="rounded-full bg-red-50 px-3 py-1 text-xs font-semibold text-red-700"
+                >Out of stock</span
             >
         </div>
 
         <div class="mt-5 flex flex-wrap items-end gap-3">
-            <span class="text-3xl font-bold text-shop-primary-600">{{
-                formatTaka(product.price)
-            }}</span>
+            <span
+                class="text-3xl font-bold tracking-tight text-gray-950 md:text-4xl"
+                >{{ formatTaka(product.price) }}</span
+            >
             <span
                 v-if="product.oldPrice"
                 class="text-lg text-gray-400 line-through"
@@ -104,11 +114,13 @@ function goToReviews(): void {
             </span>
         </div>
 
-        <p class="mt-5 max-w-prose text-sm leading-relaxed text-gray-600 md:text-base">
+        <p
+            class="mt-5 max-w-prose text-sm leading-relaxed text-gray-600 md:text-base"
+        >
             {{ product.summary }}
         </p>
 
-        <hr class="my-6 border-gray-200" />
+        <hr class="my-7 border-gray-100" />
 
         <div class="flex flex-wrap items-center gap-4">
             <div>
@@ -116,7 +128,7 @@ function goToReviews(): void {
                     >Quantity</span
                 >
                 <div
-                    class="inline-flex items-center rounded-lg border border-gray-300"
+                    class="inline-flex items-center rounded-xl border border-gray-200 bg-[#fafaf7]"
                 >
                     <button
                         type="button"
@@ -174,7 +186,8 @@ function goToReviews(): void {
         <div class="mt-5 flex flex-col gap-3 sm:flex-row">
             <button
                 type="button"
-                class="inline-flex flex-1 items-center justify-center gap-2 rounded-lg border border-shop-primary-600 px-5 py-3 text-sm font-semibold text-shop-primary-600 transition hover:bg-shop-primary-50 focus:ring-2 focus:ring-shop-primary-600 focus:outline-none"
+                :disabled="!product.inStock"
+                class="inline-flex flex-1 items-center justify-center gap-2 rounded-full border border-shop-primary-600 px-5 py-3 text-sm font-semibold text-shop-primary-700 transition hover:bg-shop-primary-50 focus:ring-2 focus:ring-shop-primary-600 focus:outline-none disabled:cursor-not-allowed disabled:border-gray-200 disabled:text-gray-400"
                 @click="handleAddToCart"
             >
                 <svg
@@ -194,7 +207,8 @@ function goToReviews(): void {
             </button>
             <button
                 type="button"
-                class="inline-flex flex-1 items-center justify-center rounded-lg bg-shop-primary-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-shop-primary-700 focus:ring-2 focus:ring-shop-primary-600 focus:outline-none"
+                :disabled="!product.inStock"
+                class="inline-flex flex-1 items-center justify-center rounded-full bg-shop-primary-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-shop-primary-700 focus:ring-2 focus:ring-shop-primary-600 focus:outline-none disabled:cursor-not-allowed disabled:bg-gray-300"
                 @click="handleBuyNow"
             >
                 Buy Now
@@ -203,7 +217,7 @@ function goToReviews(): void {
                 type="button"
                 aria-label="Add to wishlist"
                 :aria-pressed="isWishlisted"
-                class="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-lg border border-gray-300 text-gray-600 transition hover:border-red-300 hover:text-red-600 focus:ring-2 focus:ring-shop-primary-600 focus:outline-none"
+                class="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-gray-200 text-gray-600 transition hover:border-red-300 hover:text-red-600 focus:ring-2 focus:ring-shop-primary-600 focus:outline-none"
                 :class="{
                     'border-red-600 text-red-600': isWishlisted,
                 }"
@@ -226,7 +240,7 @@ function goToReviews(): void {
         </div>
 
         <div
-            class="mt-6 space-y-3 rounded-xl border border-gray-200 bg-gray-50 p-4"
+            class="mt-7 space-y-3 rounded-2xl border border-[#e8e9e2] bg-[#f8f8f4] p-4"
         >
             <div class="flex items-start gap-3">
                 <svg

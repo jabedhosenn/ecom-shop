@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { Component } from 'vue';
 import {
     Card,
     CardContent,
@@ -6,7 +7,6 @@ import {
     CardHeader,
     CardTitle,
 } from '@/components/ui/card';
-import type { Component } from 'vue';
 
 type Props = {
     title: string;
@@ -17,7 +17,7 @@ type Props = {
     iconClass?: string;
 };
 
-const props = defineProps<Props>();
+defineProps<Props>();
 
 function changeLabel(percent: number): string {
     const prefix = percent > 0 ? '+' : '';
@@ -43,11 +43,17 @@ function changeClass(percent: number | null | undefined): string {
 </script>
 
 <template>
-    <Card>
-        <CardHeader class="flex flex-row items-start justify-between gap-4 pb-2">
+    <Card
+        class="h-full rounded-2xl border-border/70 bg-card py-0 shadow-sm transition-shadow hover:shadow-md"
+    >
+        <CardHeader
+            class="flex flex-row items-start justify-between gap-3 px-4 pt-4 pb-2 sm:px-5 sm:pt-5"
+        >
             <div class="space-y-1">
-                <CardDescription>{{ title }}</CardDescription>
-                <CardTitle class="text-2xl font-bold tracking-tight">
+                <CardDescription class="text-xs font-medium tracking-wide">
+                    {{ title }}
+                </CardDescription>
+                <CardTitle class="text-xl font-bold tracking-tight tabular-nums sm:text-2xl">
                     {{ value }}
                 </CardTitle>
             </div>
@@ -59,7 +65,7 @@ function changeClass(percent: number | null | undefined): string {
                 <component :is="icon" class="size-5" />
             </div>
         </CardHeader>
-        <CardContent class="pt-0">
+        <CardContent class="px-4 pb-4 sm:px-5 sm:pb-5">
             <p
                 v-if="changePercent !== undefined"
                 class="text-sm"

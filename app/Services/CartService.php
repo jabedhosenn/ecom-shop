@@ -9,6 +9,8 @@ class CartService
 {
     private const CART_SESSION_KEY = 'cart_id';
 
+    private const COUPON_SESSION_KEY = 'cart_coupon_code';
+
     /**
      * In-request cache of the resolved Cart row.
      * null  = not looked up yet
@@ -120,6 +122,33 @@ class CartService
     }
 
     /**
+     * Calculate the subtotal from the current cart items.
+     */
+    public function subtotal(): float
+    {
+        return round(collect($this->items())->sum(
+            fn (array $item): float => $item['price'] * $item['qty'],
+        ), 2);
+    }
+
+    public function couponCode(): ?string
+    {
+        $couponCode = session(self::COUPON_SESSION_KEY);
+
+        return filled($couponCode) ? (string) $couponCode : null;
+    }
+
+    public function setCouponCode(string $couponCode): void
+    {
+        session([self::COUPON_SESSION_KEY => $couponCode]);
+    }
+
+    public function clearCoupon(): void
+    {
+        session()->forget(self::COUPON_SESSION_KEY);
+    }
+
+    /**
      * Add a product or increment its quantity.
      */
     public function add(int $productId, int $qty = 1): void
@@ -167,12 +196,26 @@ class CartService
         }
 
         $cart->items()->where('product_id', $productId)->delete();
+
+        if ($this->totalQty() === 0) {
+            $this->clearCoupon();
+        }
     }
 
     /**
      * Remove all items from the cart (keeps the cart row itself).
      */
     public function clear(): void
+    {
+        $this->clearCoupon();
+
+        $this->clearItems();
+    }
+
+    /**
+     * Remove all cart items without changing the applied coupon session state.
+     */
+    public function clearItems(): void
     {
         $cart = $this->findCart();
 

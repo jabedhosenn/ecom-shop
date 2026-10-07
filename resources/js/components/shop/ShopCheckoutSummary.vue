@@ -1,11 +1,16 @@
 <script setup lang="ts">
+import { router, useForm } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
 import { formatTaka } from '@/lib/shop/currency';
+import shop from '@/routes/shop';
 import type { ShopCartItem } from '@/types/shop';
 
 const {
     items,
     subtotal,
+    discountAmount,
+    coupon,
+    couponError,
     deliveryCharge,
     deliveryNote,
     isEmpty,
@@ -14,6 +19,9 @@ const {
 } = defineProps<{
     items: ShopCartItem[];
     subtotal: number;
+    discountAmount: number;
+    coupon: { code: string } | null;
+    couponError: string | null;
     deliveryCharge: number;
     deliveryNote: string;
     isEmpty: boolean;
@@ -33,7 +41,29 @@ const itemCount = computed(() =>
     items.reduce((sum, item) => sum + item.qty, 0),
 );
 
-const grandTotal = computed(() => subtotal + deliveryCharge);
+const grandTotal = computed(() =>
+    Math.max(0, subtotal - discountAmount + deliveryCharge),
+);
+
+const couponForm = useForm({
+    coupon_code: coupon?.code ?? '',
+});
+
+function applyCoupon(): void {
+    couponForm.post(shop.cart.coupon.apply.url(), {
+        preserveScroll: true,
+    });
+}
+
+function removeCoupon(): void {
+    router.delete(shop.cart.coupon.remove.url(), {
+        preserveScroll: true,
+        onSuccess: () => {
+            couponForm.coupon_code = '';
+            couponForm.clearErrors();
+        },
+    });
+}
 
 function toggleSummary(): void {
     if (window.innerWidth >= 1024) {
@@ -45,10 +75,12 @@ function toggleSummary(): void {
 </script>
 
 <template>
-    <div class="rounded-xl border border-gray-200 bg-white">
+    <div
+        class="overflow-hidden rounded-3xl border border-[#e7e8e1] bg-white shadow-sm"
+    >
         <button
             type="button"
-            class="flex w-full items-center justify-between gap-2 p-5 text-left lg:cursor-default"
+            class="flex w-full items-center justify-between gap-2 p-5 text-left sm:p-6 lg:cursor-default"
             @click="toggleSummary"
         >
             <span class="text-lg font-semibold text-gray-900"
@@ -194,13 +226,82 @@ function toggleSummary(): void {
             </ul>
 
             <div
-                class="space-y-2.5 border-t border-gray-100 px-5 py-4 text-sm"
+                class="space-y-3 border-t border-gray-100 px-5 py-5 text-sm sm:px-6"
             >
                 <div class="flex justify-between">
                     <span class="text-gray-500">Subtotal</span>
                     <span class="font-medium text-gray-900">{{
                         formatTaka(subtotal)
                     }}</span>
+                </div>
+                <div
+                    v-if="coupon"
+                    class="flex items-center justify-between text-green-700"
+                >
+                    <span>Coupon ({{ coupon.code }})</span>
+                    <span class="font-medium"
+                        >-{{ formatTaka(discountAmount) }}</span
+                    >
+                </div>
+                <div v-if="coupon" class="flex justify-end">
+                    <button
+                        type="button"
+                        :disabled="couponForm.processing"
+                        class="text-xs font-semibold text-red-600 hover:text-red-700 disabled:opacity-60"
+                        @click="removeCoupon"
+                    >
+                        Remove Coupon
+                    </button>
+                </div>
+                <p v-if="couponError" class="text-sm text-red-600" role="alert">
+                    {{ couponError }}
+                    <a :href="shop.cart.url()" class="font-medium underline">
+                        Return to cart
+                    </a>
+                </p>
+                <div v-if="!coupon" class="space-y-2 pt-1">
+                    <label
+                        for="checkout_coupon_code"
+                        class="block text-sm font-medium text-gray-700"
+                    >
+                        Coupon code
+                    </label>
+                    <div class="flex gap-2">
+                        <input
+                            id="checkout_coupon_code"
+                            v-model="couponForm.coupon_code"
+                            name="coupon_code"
+                            type="text"
+                            maxlength="50"
+                            autocomplete="off"
+                            class="min-w-0 flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-shop-primary-600 focus:ring-2 focus:ring-shop-primary-600 focus:outline-none"
+                            :class="
+                                couponForm.errors.coupon_code
+                                    ? 'border-red-500 focus:ring-red-500'
+                                    : ''
+                            "
+                            @input="couponForm.clearErrors('coupon_code')"
+                        />
+                        <button
+                            type="button"
+                            :disabled="couponForm.processing"
+                            class="rounded-lg bg-shop-primary-600 px-3 py-2 text-sm font-semibold text-white transition hover:bg-shop-primary-700 disabled:cursor-not-allowed disabled:opacity-60"
+                            @click="applyCoupon"
+                        >
+                            {{
+                                couponForm.processing
+                                    ? 'Applying...'
+                                    : 'Apply Coupon'
+                            }}
+                        </button>
+                    </div>
+                    <p
+                        v-if="couponForm.errors.coupon_code"
+                        class="text-sm text-red-600"
+                        role="alert"
+                    >
+                        {{ couponForm.errors.coupon_code }}
+                    </p>
                 </div>
                 <div class="flex justify-between">
                     <span class="text-gray-500">
@@ -213,6 +314,12 @@ function toggleSummary(): void {
                         formatTaka(deliveryCharge)
                     }}</span>
                 </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-500">Tax</span>
+                    <span class="text-right text-xs text-gray-400"
+                        >No separate tax</span
+                    >
+                </div>
                 <div
                     class="mt-2 flex justify-between border-t border-gray-100 pt-3 text-base"
                 >
@@ -223,10 +330,10 @@ function toggleSummary(): void {
                 </div>
             </div>
 
-            <div class="px-5 pb-5">
+            <div class="px-5 pb-5 sm:px-6 sm:pb-6">
                 <button
                     type="submit"
-                    class="w-full rounded-lg bg-shop-primary-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-shop-primary-700 focus:ring-2 focus:ring-shop-primary-600 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                    class="w-full rounded-full bg-shop-primary-600 px-5 py-3.5 text-sm font-semibold text-white transition hover:bg-shop-primary-700 focus:ring-2 focus:ring-shop-primary-600 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
                     :disabled="isEmpty || processing"
                 >
                     {{ processing ? 'Processing…' : submitLabel }}

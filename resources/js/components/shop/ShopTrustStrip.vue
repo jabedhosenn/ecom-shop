@@ -1,15 +1,17 @@
 <template>
     <section
-        class="border-b border-gray-200 bg-white"
+        class="border-y border-[#e8e8df] bg-white"
         aria-label="Why shop with us"
     >
         <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div
-                class="grid grid-cols-2 gap-4 py-6 md:grid-cols-4 md:gap-6"
+                class="grid grid-cols-1 gap-3 py-5 sm:grid-cols-2 lg:grid-cols-4 lg:gap-4"
             >
-                <div class="flex items-center gap-3">
+                <div
+                    class="flex items-center gap-3 rounded-2xl bg-[#f8f8f4] p-4"
+                >
                     <span
-                        class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-shop-primary-50 text-shop-primary-600"
+                        class="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-shop-primary-50 text-shop-primary-600"
                     >
                         <svg
                             class="h-5 w-5"
@@ -34,9 +36,11 @@
                         </p>
                     </div>
                 </div>
-                <div class="flex items-center gap-3">
+                <div
+                    class="flex items-center gap-3 rounded-2xl bg-[#f8f8f4] p-4"
+                >
                     <span
-                        class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-shop-primary-50 text-shop-primary-600"
+                        class="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-shop-primary-50 text-shop-primary-600"
                     >
                         <svg
                             class="h-5 w-5"
@@ -61,9 +65,11 @@
                         </p>
                     </div>
                 </div>
-                <div class="flex items-center gap-3">
+                <div
+                    class="flex items-center gap-3 rounded-2xl bg-[#f8f8f4] p-4"
+                >
                     <span
-                        class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-shop-primary-50 text-shop-primary-600"
+                        class="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-shop-primary-50 text-shop-primary-600"
                     >
                         <svg
                             class="h-5 w-5"
@@ -88,9 +94,11 @@
                         </p>
                     </div>
                 </div>
-                <div class="flex items-center gap-3">
+                <div
+                    class="flex items-center gap-3 rounded-2xl bg-[#f8f8f4] p-4"
+                >
                     <span
-                        class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-shop-primary-50 text-shop-primary-600"
+                        class="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-shop-primary-50 text-shop-primary-600"
                     >
                         <svg
                             class="h-5 w-5"
@@ -110,9 +118,7 @@
                         <p class="text-sm font-semibold text-gray-900">
                             Genuine Products
                         </p>
-                        <p class="text-xs text-gray-500">
-                            Quality guaranteed
-                        </p>
+                        <p class="text-xs text-gray-500">Quality guaranteed</p>
                     </div>
                 </div>
             </div>

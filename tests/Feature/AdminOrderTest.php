@@ -92,10 +92,50 @@ test('admins can view an order', function () {
             ->component('admin/orders/Show')
             ->where('order.id', $order->id)
             ->where('order.order_number', $order->order_number)
+            ->where('order.coupon_code', null)
+            ->where('order.discount_amount', 0)
             ->has('order.items', 1)
+            ->where('invoiceStore.name', config('app.name'))
+            ->has('invoiceStore.email')
             ->has('order.status_histories', 1)
             ->has('statusOptions')
             ->has('paymentStatusOptions')
+        );
+});
+
+test('order invoice uses stored coupon and order amounts', function () {
+    $admin = User::factory()->admin()->create();
+    $order = Order::factory()->create([
+        'subtotal' => 300,
+        'discount_amount' => 12.34,
+        'coupon_code' => 'HISTORY10',
+        'delivery_charge' => 20,
+        'total' => 307.66,
+    ]);
+    $order->items()->firstOrFail()->update([
+        'unit_price' => 300,
+        'quantity' => 1,
+        'line_total' => 300,
+    ]);
+    $order->items()->create([
+        'product_name' => 'Second invoice item',
+        'unit_price' => 0,
+        'quantity' => 1,
+        'line_total' => 0,
+    ]);
+
+    $this->actingAs($admin)
+        ->get(route('admin.orders.show', $order))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('order.subtotal', 300)
+            ->where('order.coupon_code', 'HISTORY10')
+            ->where('order.discount_amount', 12.34)
+            ->where('order.delivery_charge', 20)
+            ->where('order.total', 307.66)
+            ->where('order.items.0.line_total', 300)
+            ->where('order.items.0.discount_amount', 12.34)
+            ->where('order.items.1.discount_amount', 0)
         );
 });
 

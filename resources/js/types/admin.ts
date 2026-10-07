@@ -23,6 +23,30 @@ export type AdminCategory = {
     updated_at: string;
 };
 
+export type AdminCoupon = {
+    id: number;
+    code: string;
+    discount_type: 'percentage' | 'flat';
+    discount_value: number;
+    minimum_order_amount: number;
+    maximum_discount_amount: number | null;
+    usage_limit: number | null;
+    used_count: number;
+    expires_at: string | null;
+    status: 'active' | 'inactive';
+};
+
+export type CouponFormData = {
+    code: string;
+    discount_type: 'percentage' | 'flat';
+    discount_value: number | string;
+    minimum_order_amount: number | string;
+    maximum_discount_amount: number | string;
+    usage_limit: number | string;
+    expires_at: string;
+    status: 'active' | 'inactive';
+};
+
 export type CategoryFormData = {
     name: string;
     slug: string;
@@ -136,6 +160,7 @@ export type AdminOrderItem = {
     unit_price: number;
     quantity: number;
     line_total: number;
+    discount_amount: number;
 };
 
 export type AdminOrderStatusHistory = {
@@ -156,6 +181,8 @@ export type AdminOrder = AdminOrderListItem & {
     notes: string | null;
     subtotal: number;
     delivery_charge: number;
+    coupon_code: string | null;
+    discount_amount: number;
     customer: {
         id: number;
         name: string;
@@ -164,6 +191,11 @@ export type AdminOrder = AdminOrderListItem & {
     items: AdminOrderItem[];
     status_histories: AdminOrderStatusHistory[];
     updated_at: string;
+};
+
+export type AdminInvoiceStore = {
+    name: string;
+    email: string | null;
 };
 
 export type AdminOrderFilters = {
@@ -208,6 +240,7 @@ export type AdminDashboardOverview = {
     orders_change_percent: number | null;
     average_order_value: number;
     pending_orders: number;
+    completed_orders: number;
     total_customers: number;
     new_customers_this_month: number;
     total_products: number;

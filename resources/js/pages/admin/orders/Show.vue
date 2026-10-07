@@ -1,8 +1,11 @@
 <script setup lang="ts">
 import { Head, setLayoutProps, useForm } from '@inertiajs/vue3';
 import {
+    Banknote,
+    CalendarClock,
     CheckCircle,
     Clock,
+    CreditCard,
     Download,
     Mail,
     MapPin,
@@ -12,12 +15,12 @@ import {
     RotateCcw,
     Truck,
     User,
+    Wallet,
     XCircle,
 } from '@lucide/vue';
 import OrderController from '@/actions/App/Http/Controllers/Admin/OrderController';
 import OrderStatusForm from '@/components/admin/OrderStatusForm.vue';
-import Heading from '@/components/Heading.vue';
-import { Badge } from '@/components/ui/badge';
+import AppLogoIcon from '@/components/AppLogoIcon.vue';
 import { Button } from '@/components/ui/button';
 import {
     Card,
@@ -32,14 +35,15 @@ import { dashboard } from '@/routes';
 import { index, show } from '@/routes/admin/orders';
 import type {
     AdminOrder,
+    AdminInvoiceStore,
     AdminStatusOption,
     OrderStatus,
     OrderUpdateFormData,
-    PaymentStatus,
 } from '@/types/admin';
 
 const props = defineProps<{
     order: AdminOrder;
+    invoiceStore: AdminInvoiceStore;
     statusOptions: AdminStatusOption[];
     paymentStatusOptions: AdminStatusOption[];
 }>();
@@ -198,76 +202,99 @@ function printInvoice(): void {
     <!-- ─── Screen view ─────────────────────────────────────────────────── -->
     <div
         id="order-screen"
-        class="flex h-full flex-1 flex-col gap-6 rounded-xl p-4"
+        class="flex h-full flex-1 flex-col gap-6 rounded-xl p-4 md:p-6"
     >
-        <!-- Header bar -->
-        <div class="flex flex-col gap-4 rounded-2xl bg-gradient-to-r from-violet-600 via-blue-600 to-indigo-600 p-5 text-white shadow-md sm:flex-row sm:items-start sm:justify-between">
-            <div>
-                <p class="mb-1 text-xs font-semibold uppercase tracking-widest text-violet-200">
-                    Order
-                </p>
-                <h1 class="text-2xl font-bold tracking-tight">
-                    {{ order.order_number }}
-                </h1>
-                <p class="mt-0.5 text-sm text-violet-200">
-                    Placed {{ formatDate(order.placed_at) }}
-                </p>
-            </div>
+        <!-- Hero card -->
+        <div
+            class="overflow-hidden rounded-2xl border bg-card shadow-sm"
+        >
+            <div class="h-1.5 bg-gradient-to-r from-teal-400 via-emerald-500 to-cyan-500" />
 
-            <div class="flex flex-wrap items-center gap-2">
-                <span
-                    class="rounded-full px-3 py-1 text-xs font-semibold capitalize"
-                    :class="statusBadgeClasses(order.status)"
-                    style="background: rgba(255,255,255,0.15); color: white; border: 1px solid rgba(255,255,255,0.3)"
-                >
-                    {{ order.status }}
-                </span>
-                <span
-                    class="rounded-full px-3 py-1 text-xs font-semibold capitalize"
-                    style="background: rgba(255,255,255,0.15); color: white; border: 1px solid rgba(255,255,255,0.3)"
-                >
-                    {{ order.payment_status }}
-                </span>
-                <Separator orientation="vertical" class="mx-1 h-6 bg-white/30" />
-                <Button
-                    variant="secondary"
-                    size="sm"
-                    class="bg-white/20 text-white hover:bg-white/30 border-white/30"
-                    @click="printInvoice"
-                >
-                    <Printer class="size-4" />
-                    Print
-                </Button>
-                <Button
-                    variant="secondary"
-                    size="sm"
-                    class="bg-white/20 text-white hover:bg-white/30 border-white/30"
-                    @click="printInvoice"
-                >
-                    <Download class="size-4" />
-                    Save PDF
-                </Button>
-            </div>
-        </div>
-
-        <!-- Fulfillment stepper -->
-        <Card v-if="order.status !== 'cancelled'" class="border-none shadow-sm bg-gradient-to-br from-slate-50 to-white dark:from-slate-900/40 dark:to-background">
-            <CardContent class="pt-6 pb-5">
-                <div class="relative flex items-start justify-between">
-                    <!-- Background connector -->
+            <div class="flex flex-col gap-5 p-5 md:p-6 lg:flex-row lg:items-start lg:justify-between">
+                <div class="flex items-start gap-4">
                     <div
-                        class="absolute top-5 right-0 left-0 mx-[calc(12.5%+20px)] h-0.5 bg-border"
+                        class="flex size-14 shrink-0 items-center justify-center rounded-2xl bg-teal-50 text-teal-600 ring-1 ring-teal-100 dark:bg-teal-500/10 dark:text-teal-300 dark:ring-teal-500/20"
+                    >
+                        <Package class="size-7" />
+                    </div>
+                    <div class="min-w-0">
+                        <p class="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                            Order
+                        </p>
+                        <h1 class="text-2xl font-bold tracking-tight md:text-3xl">
+                            {{ order.order_number }}
+                        </h1>
+                        <div class="mt-2 flex flex-wrap items-center gap-2">
+                            <span
+                                :class="['inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-semibold capitalize', statusBadgeClasses(order.status)]"
+                            >
+                                <Truck class="size-3" />
+                                {{ order.status }}
+                            </span>
+                            <span
+                                :class="['inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-semibold capitalize', paymentBadgeClasses(order.payment_status)]"
+                            >
+                                <Wallet class="size-3" />
+                                {{ order.payment_status }}
+                            </span>
+                            <span class="inline-flex items-center gap-1 text-xs text-muted-foreground">
+                                <CalendarClock class="size-3.5" />
+                                {{ formatDate(order.placed_at) }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex flex-wrap items-center gap-2">
+                    <Button
+                        size="sm"
+                        class="gap-2 bg-slate-900 text-white hover:bg-slate-800 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200"
+                        @click="printInvoice"
+                    >
+                        <Printer class="size-4" />
+                        Print
+                    </Button>
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        class="gap-2 border-teal-200 text-teal-700 hover:bg-teal-50 hover:text-teal-800 dark:border-teal-500/30 dark:text-teal-300 dark:hover:bg-teal-500/10"
+                        @click="printInvoice"
+                    >
+                        <Download class="size-4" />
+                        Save PDF
+                    </Button>
+                </div>
+            </div>
+
+            <!-- Progress tracker -->
+            <div
+                v-if="order.status !== 'cancelled'"
+                class="border-t bg-muted/20 px-5 py-6 md:px-8"
+            >
+                <div class="relative flex items-start justify-between">
+                    <div
+                        class="absolute left-[12.5%] right-[12.5%] top-[18px] h-1 rounded-full bg-border"
                         aria-hidden="true"
-                    />
+                    >
+                        <div
+                            class="h-full rounded-full bg-gradient-to-r from-teal-400 to-emerald-500 transition-all duration-500"
+                            :style="{
+                                width: `${(Math.max(ORDER_STEPS.indexOf(order.status), 0) / (ORDER_STEPS.length - 1)) * 100}%`,
+                            }"
+                        />
+                    </div>
                     <div
                         v-for="step in ORDER_STEPS"
                         :key="step"
-                        class="relative flex flex-1 flex-col items-center gap-2"
+                        class="relative flex flex-1 flex-col items-center gap-2 text-center"
                     >
                         <div
                             :class="[
-                                'relative z-10 flex size-10 items-center justify-center rounded-full border-2 transition-all duration-300',
+                                'relative z-10 flex size-9 items-center justify-center rounded-full border-2 transition-all duration-300',
                                 stepClasses(step),
+                                stepState(step) === 'active'
+                                    ? 'ring-4 ring-teal-500/15'
+                                    : '',
                             ]"
                         >
                             <component :is="STEP_CONFIG[step].icon" class="size-4" />
@@ -284,89 +311,99 @@ function printInvoice(): void {
                         </span>
                     </div>
                 </div>
-            </CardContent>
-        </Card>
+            </div>
 
-        <!-- Cancelled banner -->
-        <div
-            v-if="order.status === 'cancelled'"
-            class="flex items-center gap-3 rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-700 dark:border-red-900/40 dark:bg-red-950/30 dark:text-red-400"
-        >
-            <XCircle class="size-5 shrink-0 text-red-500" />
-            <p>
-                This order has been <strong>cancelled</strong>.
-                Payment status: <strong class="capitalize">{{ order.payment_status }}</strong>.
-            </p>
+            <!-- Cancelled banner -->
+            <div
+                v-else
+                class="flex items-center gap-3 border-t border-red-200 bg-red-50 px-5 py-4 text-sm text-red-700 dark:border-red-900/40 dark:bg-red-950/30 dark:text-red-400"
+            >
+                <XCircle class="size-5 shrink-0 text-red-500" />
+                <p>
+                    This order has been <strong>cancelled</strong>.
+                    Payment status: <strong class="capitalize">{{ order.payment_status }}</strong>.
+                </p>
+            </div>
         </div>
 
         <!-- Main content grid -->
-        <div class="grid gap-6 xl:grid-cols-[1.5fr_1fr]">
+        <div class="grid items-start gap-6 xl:grid-cols-[1fr_380px]">
             <!-- Left column -->
             <div class="grid auto-rows-min gap-6">
                 <!-- Line items -->
-                <Card class="overflow-hidden border-none shadow-sm">
-                    <CardHeader class="bg-gradient-to-r from-indigo-50 to-blue-50 dark:from-indigo-950/30 dark:to-blue-950/30 border-b">
-                        <CardTitle class="flex items-center gap-2 text-indigo-700 dark:text-indigo-400">
-                            <div class="flex size-7 items-center justify-center rounded-lg bg-indigo-100 dark:bg-indigo-900/50">
-                                <Package class="size-4 text-indigo-600 dark:text-indigo-400" />
+                <Card class="overflow-hidden rounded-2xl shadow-sm">
+                    <CardHeader class="border-b">
+                        <div class="flex items-center justify-between gap-3">
+                            <div>
+                                <CardTitle class="flex items-center gap-2.5">
+                                    <span class="flex size-8 items-center justify-center rounded-lg bg-teal-100 text-teal-600 dark:bg-teal-500/15 dark:text-teal-300">
+                                        <Package class="size-4" />
+                                    </span>
+                                    Line items
+                                </CardTitle>
+                                <CardDescription class="mt-1">
+                                    {{ order.items_count }} {{ order.items_count === 1 ? 'item' : 'items' }} in this order
+                                </CardDescription>
                             </div>
-                            Line items
-                        </CardTitle>
-                        <CardDescription>
-                            {{ order.items_count }} {{ order.items_count === 1 ? 'item' : 'items' }} in this order
-                        </CardDescription>
+                            <span class="rounded-full bg-teal-50 px-3 py-1 text-xs font-semibold text-teal-700 dark:bg-teal-500/10 dark:text-teal-300">
+                                {{ formatTaka(order.total) }}
+                            </span>
+                        </div>
                     </CardHeader>
                     <CardContent class="p-0">
-                        <table class="w-full min-w-[540px] text-sm">
-                            <thead class="bg-indigo-600 text-white">
-                                <tr>
-                                    <th class="px-5 py-3 text-left font-semibold text-indigo-100 text-xs uppercase tracking-wide">Product</th>
-                                    <th class="px-4 py-3 text-center font-semibold text-indigo-100 text-xs uppercase tracking-wide">Qty</th>
-                                    <th class="px-4 py-3 text-right font-semibold text-indigo-100 text-xs uppercase tracking-wide">Unit price</th>
-                                    <th class="px-5 py-3 text-right font-semibold text-indigo-100 text-xs uppercase tracking-wide">Total</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr
-                                    v-for="(item, i) in order.items"
-                                    :key="item.id"
-                                    :class="['border-b last:border-b-0', i % 2 === 0 ? 'bg-white dark:bg-background' : 'bg-indigo-50/40 dark:bg-indigo-950/10']"
+                        <ul class="divide-y">
+                            <li
+                                v-for="(item, i) in order.items"
+                                :key="item.id"
+                                class="flex items-center gap-4 px-5 py-4 transition-colors hover:bg-muted/30"
+                            >
+                                <div
+                                    class="flex size-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-teal-400 to-emerald-500 text-sm font-bold text-white shadow-sm"
                                 >
-                                    <td class="px-5 py-4 font-medium">{{ item.product_name }}</td>
-                                    <td class="px-4 py-4 text-center">
-                                        <span class="inline-flex size-7 items-center justify-center rounded-full bg-indigo-100 text-xs font-bold text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-300">
-                                            {{ item.quantity }}
-                                        </span>
-                                    </td>
-                                    <td class="px-4 py-4 text-right text-muted-foreground">{{ formatTaka(item.unit_price) }}</td>
-                                    <td class="px-5 py-4 text-right font-semibold">{{ formatTaka(item.line_total) }}</td>
-                                </tr>
-                            </tbody>
-                            <tfoot>
-                                <tr class="border-t bg-slate-50 dark:bg-slate-900/30">
-                                    <td colspan="3" class="px-5 py-2.5 text-right text-xs text-muted-foreground">Subtotal</td>
-                                    <td class="px-5 py-2.5 text-right text-sm font-medium">{{ formatTaka(order.subtotal) }}</td>
-                                </tr>
-                                <tr class="bg-slate-50 dark:bg-slate-900/30">
-                                    <td colspan="3" class="px-5 py-2.5 text-right text-xs text-muted-foreground">Delivery charge</td>
-                                    <td class="px-5 py-2.5 text-right text-sm font-medium">{{ formatTaka(order.delivery_charge) }}</td>
-                                </tr>
-                                <tr class="bg-indigo-600">
-                                    <td colspan="3" class="px-5 py-3.5 text-right text-sm font-bold text-indigo-100">Order total</td>
-                                    <td class="px-5 py-3.5 text-right text-base font-extrabold text-white">{{ formatTaka(order.total) }}</td>
-                                </tr>
-                            </tfoot>
-                        </table>
+                                    {{ i + 1 }}
+                                </div>
+                                <div class="min-w-0 flex-1">
+                                    <p class="truncate font-semibold">{{ item.product_name }}</p>
+                                    <p class="mt-0.5 text-xs text-muted-foreground">
+                                        {{ formatTaka(item.unit_price) }} each
+                                    </p>
+                                </div>
+                                <span
+                                    class="rounded-md bg-slate-100 px-2.5 py-1 text-xs font-bold text-slate-700 dark:bg-slate-500/20 dark:text-slate-200"
+                                >
+                                    × {{ item.quantity }}
+                                </span>
+                                <p class="w-28 text-right font-bold text-emerald-700 dark:text-emerald-400">
+                                    {{ formatTaka(item.line_total) }}
+                                </p>
+                            </li>
+                        </ul>
+
+                        <div class="grid gap-2 border-t bg-muted/20 px-5 py-4 text-sm">
+                            <div class="flex items-center justify-between text-muted-foreground">
+                                <span>Subtotal</span>
+                                <span class="font-medium text-foreground">{{ formatTaka(order.subtotal) }}</span>
+                            </div>
+                            <div class="flex items-center justify-between text-muted-foreground">
+                                <span>Delivery charge</span>
+                                <span class="font-medium text-foreground">{{ formatTaka(order.delivery_charge) }}</span>
+                            </div>
+                            <Separator class="my-1" />
+                            <div class="flex items-center justify-between">
+                                <span class="font-semibold">Order total</span>
+                                <span class="text-xl font-extrabold text-teal-700 dark:text-teal-300">{{ formatTaka(order.total) }}</span>
+                            </div>
+                        </div>
                     </CardContent>
                 </Card>
 
                 <!-- Status timeline -->
-                <Card class="border-none shadow-sm">
-                    <CardHeader class="bg-gradient-to-r from-violet-50 to-purple-50 dark:from-violet-950/30 dark:to-purple-950/30 border-b">
-                        <CardTitle class="flex items-center gap-2 text-violet-700 dark:text-violet-400">
-                            <div class="flex size-7 items-center justify-center rounded-lg bg-violet-100 dark:bg-violet-900/50">
-                                <Clock class="size-4 text-violet-600 dark:text-violet-400" />
-                            </div>
+                <Card class="overflow-hidden rounded-2xl shadow-sm">
+                    <CardHeader class="border-b">
+                        <CardTitle class="flex items-center gap-2.5">
+                            <span class="flex size-8 items-center justify-center rounded-lg bg-violet-100 text-violet-600 dark:bg-violet-500/15 dark:text-violet-300">
+                                <Clock class="size-4" />
+                            </span>
                             Status history
                         </CardTitle>
                         <CardDescription>Chronological log of all status changes</CardDescription>
@@ -374,7 +411,7 @@ function printInvoice(): void {
                     <CardContent class="pt-6">
                         <div v-if="order.status_histories.length > 0" class="relative">
                             <div
-                                class="absolute top-5 bottom-5 left-[19px] w-0.5 bg-gradient-to-b from-violet-300 via-blue-200 to-transparent"
+                                class="absolute bottom-5 left-[19px] top-5 w-px bg-border"
                                 aria-hidden="true"
                             />
                             <div
@@ -416,58 +453,82 @@ function printInvoice(): void {
                 </Card>
             </div>
 
-            <!-- Right column -->
-            <div class="grid auto-rows-min gap-6">
+            <!-- Right column (sticky on large screens) -->
+            <div class="grid auto-rows-min gap-6 xl:sticky xl:top-4">
+                <!-- Update order -->
+                <Card class="overflow-hidden rounded-2xl border-teal-200 shadow-sm dark:border-teal-500/30">
+                    <CardHeader class="border-b bg-teal-50/60 dark:bg-teal-500/5">
+                        <CardTitle class="flex items-center gap-2.5 text-teal-800 dark:text-teal-300">
+                            <span class="flex size-8 items-center justify-center rounded-lg bg-teal-100 text-teal-600 dark:bg-teal-500/15 dark:text-teal-300">
+                                <RotateCcw class="size-4" />
+                            </span>
+                            Update order
+                        </CardTitle>
+                        <CardDescription>Change fulfillment or payment status</CardDescription>
+                    </CardHeader>
+                    <CardContent class="pt-5">
+                        <form @submit.prevent="submit">
+                            <OrderStatusForm
+                                :form="form"
+                                :status-options="statusOptions"
+                                :payment-status-options="paymentStatusOptions"
+                            />
+                        </form>
+                    </CardContent>
+                </Card>
+
                 <!-- Customer -->
-                <Card class="border-none shadow-sm overflow-hidden">
-                    <CardHeader class="bg-gradient-to-r from-sky-50 to-cyan-50 dark:from-sky-950/30 dark:to-cyan-950/30 border-b">
-                        <CardTitle class="flex items-center gap-2 text-sky-700 dark:text-sky-400">
-                            <div class="flex size-7 items-center justify-center rounded-lg bg-sky-100 dark:bg-sky-900/50">
-                                <User class="size-4 text-sky-600 dark:text-sky-400" />
-                            </div>
+                <Card class="overflow-hidden rounded-2xl shadow-sm">
+                    <CardHeader class="border-b">
+                        <CardTitle class="flex items-center gap-2.5">
+                            <span class="flex size-8 items-center justify-center rounded-lg bg-sky-100 text-sky-600 dark:bg-sky-500/15 dark:text-sky-300">
+                                <User class="size-4" />
+                            </span>
                             Customer
                         </CardTitle>
                     </CardHeader>
                     <CardContent class="grid gap-4 pt-5 text-sm">
                         <div class="flex items-center gap-3">
-                            <div class="flex size-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-sky-400 to-cyan-500 text-white shadow-sm">
-                                <User class="size-4" />
+                            <div class="flex size-11 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-sky-400 to-blue-500 text-white shadow-sm">
+                                <User class="size-5" />
                             </div>
                             <div>
                                 <p class="font-semibold">{{ order.customer_name }}</p>
-                                <p class="text-xs text-muted-foreground">
+                                <p
+                                    class="mt-0.5 inline-block rounded-full px-2 py-0.5 text-[11px] font-medium"
+                                    :class="order.customer
+                                        ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300'
+                                        : 'bg-slate-100 text-slate-600 dark:bg-slate-500/20 dark:text-slate-300'"
+                                >
                                     {{ order.customer ? 'Registered account' : 'Guest checkout' }}
                                 </p>
                             </div>
                         </div>
-                        <Separator />
-                        <div class="flex items-center gap-3">
-                            <div class="flex size-7 shrink-0 items-center justify-center rounded-md bg-sky-100 dark:bg-sky-900/40">
-                                <Phone class="size-3.5 text-sky-600 dark:text-sky-400" />
+                        <div class="grid gap-2">
+                            <div class="flex items-center gap-3 rounded-lg border bg-muted/20 px-3 py-2.5">
+                                <Phone class="size-4 text-sky-500" />
+                                <span class="font-medium">{{ order.phone }}</span>
                             </div>
-                            <span>{{ order.phone }}</span>
-                        </div>
-                        <div class="flex items-center gap-3">
-                            <div class="flex size-7 shrink-0 items-center justify-center rounded-md bg-sky-100 dark:bg-sky-900/40">
-                                <Mail class="size-3.5 text-sky-600 dark:text-sky-400" />
+                            <div class="flex items-center gap-3 rounded-lg border bg-muted/20 px-3 py-2.5">
+                                <Mail class="size-4 text-sky-500" />
+                                <span class="break-all font-medium">{{ order.email }}</span>
                             </div>
-                            <span class="break-all">{{ order.email }}</span>
                         </div>
                     </CardContent>
                 </Card>
 
                 <!-- Shipping -->
-                <Card class="border-none shadow-sm overflow-hidden">
-                    <CardHeader class="bg-gradient-to-r from-orange-50 to-amber-50 dark:from-orange-950/30 dark:to-amber-950/30 border-b">
-                        <CardTitle class="flex items-center gap-2 text-orange-700 dark:text-orange-400">
-                            <div class="flex size-7 items-center justify-center rounded-lg bg-orange-100 dark:bg-orange-900/50">
-                                <MapPin class="size-4 text-orange-600 dark:text-orange-400" />
-                            </div>
+                <Card class="overflow-hidden rounded-2xl shadow-sm">
+                    <CardHeader class="border-b">
+                        <CardTitle class="flex items-center gap-2.5">
+                            <span class="flex size-8 items-center justify-center rounded-lg bg-orange-100 text-orange-600 dark:bg-orange-500/15 dark:text-orange-300">
+                                <MapPin class="size-4" />
+                            </span>
                             Shipping address
                         </CardTitle>
                     </CardHeader>
                     <CardContent class="grid gap-3 pt-5 text-sm">
-                        <div class="rounded-xl bg-orange-50/60 p-4 dark:bg-orange-950/20">
+                        <div class="flex gap-3 rounded-xl border-l-4 border-orange-400 bg-orange-50/60 p-4 dark:bg-orange-500/5">
                             <p class="font-semibold leading-relaxed">
                                 {{ order.address }},<br />
                                 {{ order.area }}, {{ order.district }}
@@ -486,12 +547,16 @@ function printInvoice(): void {
                 </Card>
 
                 <!-- Payment summary -->
-                <Card class="border-none shadow-sm overflow-hidden">
-                    <CardHeader class="bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/30 border-b">
-                        <CardTitle class="flex items-center gap-2 text-emerald-700 dark:text-emerald-400">
-                            <div class="flex size-7 items-center justify-center rounded-lg bg-emerald-100 dark:bg-emerald-900/50">
-                                <Package class="size-4 text-emerald-600 dark:text-emerald-400" />
-                            </div>
+                <Card class="overflow-hidden rounded-2xl shadow-sm">
+                    <CardHeader class="border-b">
+                        <CardTitle class="flex items-center gap-2.5">
+                            <span class="flex size-8 items-center justify-center rounded-lg bg-emerald-100 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-300">
+                                <Banknote
+                                    v-if="order.payment_method === 'cod'"
+                                    class="size-4"
+                                />
+                                <CreditCard v-else class="size-4" />
+                            </span>
                             Payment summary
                         </CardTitle>
                     </CardHeader>
@@ -517,76 +582,59 @@ function printInvoice(): void {
                             <span class="text-muted-foreground">Delivery charge</span>
                             <span>{{ formatTaka(order.delivery_charge) }}</span>
                         </div>
-                        <div class="flex items-center justify-between rounded-xl bg-emerald-600 px-4 py-3 text-white">
+                        <div class="flex items-center justify-between rounded-xl bg-slate-900 px-4 py-3 text-white dark:bg-white dark:text-slate-900">
                             <span class="font-semibold">Total</span>
                             <span class="text-lg font-extrabold">{{ formatTaka(order.total) }}</span>
                         </div>
                         <div class="grid grid-cols-2 gap-2 text-xs text-muted-foreground">
-                            <div>
-                                <p class="mb-0.5 font-medium">Placed</p>
+                            <div class="rounded-lg border bg-muted/20 p-2.5">
+                                <p class="mb-0.5 font-medium text-foreground">Placed</p>
                                 <p>{{ formatDate(order.placed_at) }}</p>
                             </div>
-                            <div>
-                                <p class="mb-0.5 font-medium">Last updated</p>
+                            <div class="rounded-lg border bg-muted/20 p-2.5">
+                                <p class="mb-0.5 font-medium text-foreground">Last updated</p>
                                 <p>{{ formatDate(order.updated_at) }}</p>
                             </div>
                         </div>
-                    </CardContent>
-                </Card>
-
-                <!-- Update order -->
-                <Card class="border-none shadow-sm overflow-hidden">
-                    <CardHeader class="bg-gradient-to-r from-violet-50 to-indigo-50 dark:from-violet-950/30 dark:to-indigo-950/30 border-b">
-                        <CardTitle class="flex items-center gap-2 text-violet-700 dark:text-violet-400">
-                            <div class="flex size-7 items-center justify-center rounded-lg bg-violet-100 dark:bg-violet-900/50">
-                                <RotateCcw class="size-4 text-violet-600 dark:text-violet-400" />
-                            </div>
-                            Update order
-                        </CardTitle>
-                        <CardDescription>Change fulfillment or payment status</CardDescription>
-                    </CardHeader>
-                    <CardContent class="pt-5">
-                        <form @submit.prevent="submit">
-                            <OrderStatusForm
-                                :form="form"
-                                :status-options="statusOptions"
-                                :payment-status-options="paymentStatusOptions"
-                            />
-                        </form>
                     </CardContent>
                 </Card>
             </div>
         </div>
     </div>
 
-        <!-- ─── Printable Invoice (hidden on screen, shown on print) ───────── -->
+    <!-- ─── Printable Invoice (hidden on screen, shown on print) ───────── -->
     <div id="invoice-print">
-        <!-- Header -->
         <header class="inv-header">
             <div class="inv-brand">
-                <h1>ShopEase</h1>
-                <p>Your trusted online store</p>
-                <p>support@shopease.com.bd</p>
+                <div class="inv-brand-mark">
+                    <AppLogoIcon class="inv-logo" aria-hidden="true" />
+                    <h1>{{ invoiceStore.name }}</h1>
+                </div>
+                <p v-if="invoiceStore.email">{{ invoiceStore.email }}</p>
             </div>
             <div class="inv-title">
                 <h2>Invoice</h2>
-                <p class="inv-number">{{ order.order_number }}</p>
+                <p class="inv-number">#{{ order.order_number }}</p>
+                <p class="inv-date">Issued {{ formatDate(order.created_at) }}</p>
             </div>
         </header>
 
-        <!-- Meta strip -->
         <section class="inv-meta">
             <div class="inv-meta-item">
+                <span class="inv-label">Order ID</span>
+                <span class="inv-value">#{{ order.id }}</span>
+            </div>
+            <div class="inv-meta-item">
                 <span class="inv-label">Order date</span>
-                <span class="inv-value">{{ formatDate(order.placed_at) }}</span>
+                <span class="inv-value">
+                    {{ formatDate(order.placed_at ?? order.created_at) }}
+                </span>
             </div>
             <div class="inv-meta-item">
                 <span class="inv-label">Payment method</span>
-                <span class="inv-value">{{ paymentMethodLabel(order.payment_method) }}</span>
-            </div>
-            <div class="inv-meta-item">
-                <span class="inv-label">Order status</span>
-                <span class="inv-value inv-capitalize">{{ order.status }}</span>
+                <span class="inv-value">
+                    {{ paymentMethodLabel(order.payment_method) }}
+                </span>
             </div>
             <div class="inv-meta-item">
                 <span class="inv-label">Payment status</span>
@@ -594,51 +642,62 @@ function printInvoice(): void {
                     {{ order.payment_status }}
                 </span>
             </div>
+            <div class="inv-meta-item">
+                <span class="inv-label">Order status</span>
+                <span class="inv-value inv-capitalize">{{ order.status }}</span>
+            </div>
         </section>
 
-        <!-- Parties -->
         <section class="inv-parties">
             <div class="inv-party">
                 <h3>Billed to</h3>
                 <p class="inv-party-name">{{ order.customer_name }}</p>
-                <p>{{ order.phone }}</p>
                 <p>{{ order.email }}</p>
+                <p>{{ order.phone }}</p>
             </div>
             <div class="inv-party">
-                <h3>Ship to</h3>
+                <h3>Billing / shipping address</h3>
+                <p class="inv-party-name">{{ order.customer_name }}</p>
                 <p>{{ order.address }}</p>
                 <p>{{ order.area }}, {{ order.district }}</p>
                 <p v-if="order.notes" class="inv-note">Note: {{ order.notes }}</p>
             </div>
         </section>
 
-        <!-- Items -->
         <table class="inv-items">
             <thead>
                 <tr>
-                    <th class="inv-col-no">#</th>
-                    <th>Description</th>
-                    <th class="inv-right">Unit price</th>
+                    <th>Product</th>
                     <th class="inv-center">Qty</th>
+                    <th class="inv-right">Unit price</th>
+                    <th class="inv-right">Discount</th>
                     <th class="inv-right">Amount</th>
                 </tr>
             </thead>
-            <tbody>
-                <tr v-for="(item, idx) in order.items" :key="item.id">
-                    <td class="inv-col-no">{{ idx + 1 }}</td>
+            <tbody v-if="order.items.length > 0">
+                <tr v-for="item in order.items" :key="item.id">
                     <td class="inv-product">{{ item.product_name }}</td>
-                    <td class="inv-right">{{ formatTaka(item.unit_price) }}</td>
                     <td class="inv-center">{{ item.quantity }}</td>
+                    <td class="inv-right">{{ formatTaka(item.unit_price) }}</td>
+                    <td class="inv-right">
+                        {{
+                            item.discount_amount > 0
+                                ? `−${formatTaka(item.discount_amount)}`
+                                : '—'
+                        }}
+                    </td>
                     <td class="inv-right inv-strong">{{ formatTaka(item.line_total) }}</td>
                 </tr>
             </tbody>
         </table>
 
-        <!-- Totals -->
         <section class="inv-totals-wrap">
             <div class="inv-thanks">
-                <p class="inv-label">Thank you</p>
-                <p>We appreciate your business and hope to serve you again soon.</p>
+                <p class="inv-thanks-title">Thank you for your order</p>
+                <p>
+                    We appreciate your business and hope to serve you again
+                    soon.
+                </p>
             </div>
             <table class="inv-totals">
                 <tbody>
@@ -646,23 +705,43 @@ function printInvoice(): void {
                         <td>Subtotal</td>
                         <td class="inv-right">{{ formatTaka(order.subtotal) }}</td>
                     </tr>
+                    <tr v-if="order.coupon_code">
+                        <td>Coupon ({{ order.coupon_code }})</td>
+                        <td class="inv-right inv-discount">
+                            −{{ formatTaka(order.discount_amount) }}
+                        </td>
+                    </tr>
+                    <tr v-else-if="order.discount_amount > 0">
+                        <td>Discount</td>
+                        <td class="inv-right inv-discount">
+                            −{{ formatTaka(order.discount_amount) }}
+                        </td>
+                    </tr>
                     <tr>
-                        <td>Delivery charge</td>
+                        <td>Tax</td>
+                        <td class="inv-right">Not charged</td>
+                    </tr>
+                    <tr>
+                        <td>Shipping</td>
                         <td class="inv-right">{{ formatTaka(order.delivery_charge) }}</td>
                     </tr>
                     <tr class="inv-grand">
-                        <td>Grand total</td>
+                        <td>Final total</td>
                         <td class="inv-right">{{ formatTaka(order.total) }}</td>
                     </tr>
                 </tbody>
             </table>
         </section>
 
-        <!-- Footer -->
         <footer class="inv-footer">
-            <p>Thank you for shopping with <strong>ShopEase</strong>!</p>
-            <p>Questions? Email us at <strong>support@shopease.com.bd</strong></p>
-            <p class="inv-dev">Developed by <strong>Jabed Hosen</strong></p>
+            <p>
+                Thank you for shopping with
+                <strong>{{ invoiceStore.name }}</strong>.
+            </p>
+            <p v-if="invoiceStore.email">
+                For assistance, contact
+                <strong>{{ invoiceStore.email }}</strong>.
+            </p>
         </footer>
     </div>
 </template>
@@ -675,7 +754,11 @@ function printInvoice(): void {
 @media print {
     @page {
         size: A4;
-        margin: 14mm;
+        margin: 0;
+    }
+
+    :global([data-print-hidden]) {
+        display: none !important;
     }
 
     #order-screen {
@@ -692,6 +775,8 @@ function printInvoice(): void {
         margin: 0 auto;
         -webkit-print-color-adjust: exact;
         print-color-adjust: exact;
+        box-sizing: border-box;
+        padding: 14mm;
     }
 
     #invoice-print p {
@@ -953,6 +1038,97 @@ function printInvoice(): void {
         margin-top: 4px !important;
         font-size: 10px;
         color: #9ca3af;
+    }
+
+    .inv-brand-mark {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 5px;
+    }
+
+    .inv-brand-mark h1 {
+        margin: 0;
+    }
+
+    .inv-logo {
+        width: 34px;
+        height: 34px;
+        padding: 5px;
+        border-radius: 9px;
+        color: #ffffff;
+        background: #0f766e;
+    }
+
+    .inv-header {
+        border-bottom-color: #0f766e;
+    }
+
+    .inv-brand h1,
+    .inv-number,
+    .inv-party h3 {
+        color: #0f766e;
+    }
+
+    .inv-title h2 {
+        font-weight: 700;
+        letter-spacing: 2px;
+    }
+
+    .inv-date {
+        margin-top: 3px !important;
+        font-size: 10.5px;
+        color: #6b7280;
+    }
+
+    .inv-meta {
+        overflow: hidden;
+        background: #f8fafc;
+        border-color: #dbe4ea;
+    }
+
+    .inv-meta-item {
+        padding: 10px 12px;
+        border-color: #dbe4ea;
+    }
+
+    .inv-items thead th {
+        background: #115e59;
+    }
+
+    .inv-totals .inv-grand td {
+        background: #115e59;
+    }
+
+    .inv-discount {
+        color: #047857 !important;
+        font-weight: 600;
+    }
+
+    .inv-thanks-title {
+        font-size: 14px;
+        font-weight: 700;
+        color: #111827;
+    }
+
+    .inv-footer {
+        margin-top: 28px;
+        border-top-color: #cbd5e1;
+    }
+
+    @page {
+        margin: 8mm;
+    }
+
+    #invoice-print {
+        max-width: none;
+        padding: 8mm;
+    }
+
+    .inv-parties,
+    .inv-items,
+    .inv-totals-wrap {
+        page-break-inside: avoid;
     }
 }
 </style>

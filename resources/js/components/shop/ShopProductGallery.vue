@@ -16,11 +16,13 @@ function selectImage(index: number): void {
 
 <template>
     <div>
-        <div class="overflow-hidden rounded-xl border border-gray-200 bg-gray-100">
+        <div
+            class="overflow-hidden rounded-3xl border border-[#e8e9e2] bg-[#f1f2ed] shadow-sm"
+        >
             <img
                 :src="images[activeIndex].full"
                 :alt="alt"
-                class="aspect-square w-full object-cover"
+                class="aspect-square w-full object-contain p-3 sm:p-5"
             />
         </div>
 
@@ -29,7 +31,7 @@ function selectImage(index: number): void {
                 v-for="(image, index) in images"
                 :key="index"
                 type="button"
-                class="h-20 w-20 shrink-0 overflow-hidden rounded-lg border-2 focus:ring-2 focus:ring-shop-primary-600 focus:outline-none"
+                class="h-16 w-16 shrink-0 overflow-hidden rounded-xl border-2 bg-[#f1f2ed] p-1 focus:ring-2 focus:ring-shop-primary-600 focus:outline-none sm:h-20 sm:w-20"
                 :class="
                     activeIndex === index
                         ? 'border-shop-primary-600'

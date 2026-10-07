@@ -29,11 +29,13 @@ const { products, total, hasActiveFilters, clearFilters } = useShopCatalog();
         />
     </Head>
 
-    <div class="border-b border-gray-200 bg-gray-50">
+    <div class="border-b border-[#e7e8e1] bg-[#f1f2ed]">
         <div
             class="mx-auto flex max-w-7xl flex-wrap items-center gap-x-3 gap-y-1 px-4 py-3 sm:px-6 lg:px-8"
         >
-            <h1 class="text-lg font-bold text-gray-900 md:text-xl">
+            <h1
+                class="text-lg font-bold tracking-tight text-gray-950 md:text-xl"
+            >
                 Shop All Products
             </h1>
             <nav aria-label="Breadcrumb">
@@ -65,8 +67,8 @@ const { products, total, hasActiveFilters, clearFilters } = useShopCatalog();
         to populate the product catalog.
     </div>
 
-    <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        <div class="lg:grid lg:grid-cols-[260px_1fr] lg:gap-8">
+    <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 md:py-10 lg:px-8">
+        <div class="lg:grid lg:grid-cols-[260px_minmax(0,1fr)] lg:gap-8">
             <ShopFilters />
 
             <div>
@@ -75,7 +77,7 @@ const { products, total, hasActiveFilters, clearFilters } = useShopCatalog();
 
                 <div
                     v-if="products.length > 0"
-                    class="grid grid-cols-2 gap-4 sm:grid-cols-3 md:gap-6 lg:grid-cols-3 xl:grid-cols-4"
+                    class="grid grid-cols-2 gap-3.5 sm:grid-cols-3 sm:gap-5 xl:grid-cols-4"
                 >
                     <ShopProductCard
                         v-for="product in products"
@@ -86,7 +88,7 @@ const { products, total, hasActiveFilters, clearFilters } = useShopCatalog();
 
                 <div
                     v-else
-                    class="py-16 text-center"
+                    class="rounded-3xl border border-dashed border-gray-300 bg-white px-5 py-16 text-center"
                 >
                     <div
                         class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gray-100 text-gray-400"

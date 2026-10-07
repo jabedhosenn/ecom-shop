@@ -31,6 +31,7 @@ class StoreCheckoutRequest extends FormRequest
             'area' => ['required', 'string', 'max:150'],
             'address' => ['required', 'string', 'max:2000'],
             'notes' => ['nullable', 'string', 'max:1000'],
+            'coupon_code' => ['nullable', 'string', 'max:50'],
             'payment_method' => ['required', Rule::in(['cod', 'sslcommerz'])],
         ];
     }

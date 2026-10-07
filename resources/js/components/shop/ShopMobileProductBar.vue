@@ -25,11 +25,11 @@ function handleBuyNow(): void {
 
 <template>
     <div
-        class="fixed inset-x-0 bottom-0 z-40 border-t border-gray-200 bg-white/95 backdrop-blur lg:hidden"
+        class="fixed inset-x-0 bottom-0 z-40 border-t border-[#e4e6de] bg-white/95 shadow-[0_-8px_28px_rgba(25,45,36,0.08)] backdrop-blur lg:hidden"
     >
         <div class="flex items-center gap-3 px-4 py-3">
             <div class="leading-tight">
-                <p class="text-lg font-bold text-shop-primary-600">
+                <p class="text-lg font-bold text-gray-950">
                     {{ formatTaka(product.price) }}
                 </p>
                 <p
@@ -41,14 +41,16 @@ function handleBuyNow(): void {
             </div>
             <button
                 type="button"
-                class="flex-1 rounded-lg border border-shop-primary-600 px-4 py-3 text-sm font-semibold text-shop-primary-600 transition hover:bg-shop-primary-50"
+                :disabled="!product.inStock"
+                class="flex-1 rounded-full border border-shop-primary-600 px-4 py-3 text-sm font-semibold text-shop-primary-700 transition hover:bg-shop-primary-50 disabled:cursor-not-allowed disabled:border-gray-200 disabled:text-gray-400"
                 @click="handleAddToCart"
             >
                 Add to Cart
             </button>
             <button
                 type="button"
-                class="flex-1 rounded-lg bg-shop-primary-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-shop-primary-700"
+                :disabled="!product.inStock"
+                class="flex-1 rounded-full bg-shop-primary-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-shop-primary-700 disabled:cursor-not-allowed disabled:bg-gray-300"
                 @click="handleBuyNow"
             >
                 Buy Now

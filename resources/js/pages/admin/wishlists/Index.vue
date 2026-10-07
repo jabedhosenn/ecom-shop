@@ -57,17 +57,24 @@ function formatDate(value: string): string {
     >
         <!-- Header -->
         <div
-            class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
+            class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
         >
-            <Heading
-                title="Wishlists"
-                description="View customer wishlist items across the store"
-            />
+            <div class="flex items-center gap-4">
+                <div
+                    class="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-rose-500 to-pink-600 text-white shadow-lg shadow-rose-500/30"
+                >
+                    <Heart class="size-6 fill-current" />
+                </div>
+                <Heading
+                    title="Wishlists"
+                    description="View customer wishlist items across the store"
+                />
+            </div>
             <div
-                class="inline-flex w-fit items-center gap-2 rounded-full border border-rose-200 bg-rose-50 px-4 py-1.5 text-sm font-medium text-rose-700 dark:border-rose-500/30 dark:bg-rose-500/10 dark:text-rose-300"
+                class="inline-flex w-fit items-center gap-2 rounded-full border border-indigo-200 bg-indigo-50 px-4 py-1.5 text-sm font-semibold text-indigo-700 dark:border-indigo-500/30 dark:bg-indigo-500/10 dark:text-indigo-300"
             >
-                <Heart class="size-4 fill-current" />
-                {{ wishlists.length }} items
+                <span class="size-2 rounded-full bg-indigo-500"></span>
+                {{ wishlists.length }} total items
             </div>
         </div>
 
@@ -75,23 +82,23 @@ function formatDate(value: string): string {
         <form
             :action="index()"
             method="get"
-            class="grid gap-4 rounded-xl border border-sidebar-border/70 bg-card p-5 shadow-sm dark:border-sidebar-border lg:grid-cols-[1fr_auto]"
+            class="grid gap-4 rounded-2xl border border-sidebar-border/70 bg-card p-5 shadow-sm dark:border-sidebar-border lg:grid-cols-[1fr_auto]"
         >
             <div class="grid gap-2">
                 <Label
                     for="search"
-                    class="text-xs font-semibold tracking-wide text-muted-foreground uppercase"
+                    class="text-xs font-semibold tracking-wider text-muted-foreground uppercase"
                 >
                     Search
                 </Label>
                 <div class="relative">
                     <Search
-                        class="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
+                        class="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-indigo-500"
                     />
                     <Input
                         id="search"
                         name="search"
-                        class="pl-9"
+                        class="h-10 rounded-lg pl-9 focus-visible:border-indigo-400 focus-visible:ring-indigo-500/30"
                         :default-value="props.filters.search"
                         placeholder="Customer name, email, or product name"
                     />
@@ -101,11 +108,11 @@ function formatDate(value: string): string {
             <div class="flex items-end gap-2">
                 <Button
                     type="submit"
-                    class="bg-indigo-600 text-white hover:bg-indigo-700"
+                    class="h-10 rounded-lg bg-gradient-to-r from-indigo-600 to-violet-600 px-6 text-white shadow-md shadow-indigo-500/25 hover:from-indigo-700 hover:to-violet-700"
                 >
                     Filter
                 </Button>
-                <Button as-child variant="outline">
+                <Button as-child variant="outline" class="h-10 rounded-lg">
                     <Link :href="index()">Reset</Link>
                 </Button>
             </div>
@@ -113,36 +120,36 @@ function formatDate(value: string): string {
 
         <!-- Table -->
         <div
-            class="overflow-hidden rounded-xl border border-sidebar-border/70 bg-card shadow-sm dark:border-sidebar-border"
+            class="overflow-hidden rounded-2xl border border-sidebar-border/70 bg-card shadow-sm dark:border-sidebar-border"
         >
             <div class="overflow-x-auto">
                 <table class="w-full min-w-[1000px] text-sm">
                     <thead
-                        class="border-b bg-gradient-to-r from-indigo-50 to-rose-50 text-left dark:from-indigo-500/10 dark:to-rose-500/10"
+                        class="border-b bg-gradient-to-r from-indigo-50 via-violet-50 to-rose-50 text-left dark:from-indigo-500/10 dark:via-violet-500/10 dark:to-rose-500/10"
                     >
                         <tr>
                             <th
-                                class="px-4 py-3 text-xs font-semibold tracking-wide text-muted-foreground uppercase"
+                                class="px-5 py-3.5 text-xs font-semibold tracking-wider text-slate-600 uppercase dark:text-slate-300"
                             >
                                 Customer
                             </th>
                             <th
-                                class="px-4 py-3 text-xs font-semibold tracking-wide text-muted-foreground uppercase"
+                                class="px-5 py-3.5 text-xs font-semibold tracking-wider text-slate-600 uppercase dark:text-slate-300"
                             >
                                 Product
                             </th>
                             <th
-                                class="px-4 py-3 text-xs font-semibold tracking-wide text-muted-foreground uppercase"
+                                class="px-5 py-3.5 text-xs font-semibold tracking-wider text-slate-600 uppercase dark:text-slate-300"
                             >
                                 Price
                             </th>
                             <th
-                                class="px-4 py-3 text-xs font-semibold tracking-wide text-muted-foreground uppercase"
+                                class="px-5 py-3.5 text-xs font-semibold tracking-wider text-slate-600 uppercase dark:text-slate-300"
                             >
                                 Stock
                             </th>
                             <th
-                                class="px-4 py-3 text-xs font-semibold tracking-wide text-muted-foreground uppercase"
+                                class="px-5 py-3.5 text-xs font-semibold tracking-wider text-slate-600 uppercase dark:text-slate-300"
                             >
                                 Added
                             </th>
@@ -152,29 +159,31 @@ function formatDate(value: string): string {
                         <tr
                             v-for="wishlist in wishlists"
                             :key="wishlist.id"
-                            class="border-b transition-colors last:border-b-0 hover:bg-indigo-50/50 dark:hover:bg-indigo-500/5"
+                            class="border-b transition-colors last:border-b-0 hover:bg-indigo-50/60 dark:hover:bg-indigo-500/5"
                         >
-                            <td class="px-4 py-3">
+                            <td class="px-5 py-4">
                                 <div class="flex items-center gap-3">
                                     <div
-                                        class="flex size-9 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-sm font-semibold text-indigo-700 uppercase dark:bg-indigo-500/20 dark:text-indigo-300"
+                                        class="flex size-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-violet-600 text-sm font-semibold text-white uppercase shadow-sm"
                                     >
                                         {{ wishlist.user.name.charAt(0) }}
                                     </div>
                                     <div>
-                                        <p class="font-medium">
+                                        <p class="font-semibold">
                                             {{ wishlist.user.name }}
                                         </p>
-                                        <p class="text-muted-foreground">
+                                        <p
+                                            class="text-xs text-muted-foreground"
+                                        >
                                             {{ wishlist.user.email }}
                                         </p>
                                     </div>
                                 </div>
                             </td>
-                            <td class="px-4 py-3">
+                            <td class="px-5 py-4">
                                 <div class="flex items-center gap-3">
                                     <div
-                                        class="size-12 shrink-0 overflow-hidden rounded-lg border bg-muted shadow-sm"
+                                        class="size-14 shrink-0 overflow-hidden rounded-xl border bg-muted shadow-sm ring-2 ring-rose-100 dark:ring-rose-500/20"
                                     >
                                         <img
                                             v-if="wishlist.product.image"
@@ -184,31 +193,36 @@ function formatDate(value: string): string {
                                         />
                                     </div>
                                     <div class="grid gap-1">
-                                        <p class="font-medium">
+                                        <p class="font-semibold">
                                             {{ wishlist.product.name }}
                                         </p>
                                         <span
                                             v-if="!wishlist.product.is_active"
-                                            class="inline-flex w-fit items-center rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700 dark:bg-amber-500/15 dark:text-amber-300"
+                                            class="inline-flex w-fit items-center gap-1.5 rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-700 dark:bg-amber-500/15 dark:text-amber-300"
                                         >
+                                            <span
+                                                class="size-1.5 rounded-full bg-amber-500"
+                                            ></span>
                                             Inactive product
                                         </span>
                                     </div>
                                 </div>
                             </td>
-                            <td
-                                class="px-4 py-3 font-semibold text-emerald-700 dark:text-emerald-400"
-                            >
-                                {{ formatTaka(wishlist.product.price) }}
+                            <td class="px-5 py-4">
+                                <span
+                                    class="inline-flex rounded-lg bg-emerald-50 px-2.5 py-1 font-semibold text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300"
+                                >
+                                    {{ formatTaka(wishlist.product.price) }}
+                                </span>
                             </td>
-                            <td class="px-4 py-3">
+                            <td class="px-5 py-4">
                                 <Badge
                                     :variant="
                                         stockStatusVariant(
                                             wishlist.product.stock_status,
                                         )
                                     "
-                                    class="border-transparent capitalize"
+                                    class="gap-1.5 border-transparent px-2.5 py-1 capitalize"
                                     :class="
                                         wishlist.product.stock_status ===
                                         'in_stock'
@@ -216,6 +230,15 @@ function formatDate(value: string): string {
                                             : 'bg-rose-100 text-rose-700 hover:bg-rose-100 dark:bg-rose-500/15 dark:text-rose-300'
                                     "
                                 >
+                                    <span
+                                        class="size-1.5 rounded-full"
+                                        :class="
+                                            wishlist.product.stock_status ===
+                                            'in_stock'
+                                                ? 'bg-emerald-500'
+                                                : 'bg-rose-500'
+                                        "
+                                    ></span>
                                     {{
                                         wishlist.product.stock_status.replace(
                                             '_',
@@ -224,19 +247,21 @@ function formatDate(value: string): string {
                                     }}
                                 </Badge>
                             </td>
-                            <td class="px-4 py-3 text-muted-foreground">
+                            <td
+                                class="px-5 py-4 text-slate-500 dark:text-slate-400"
+                            >
                                 {{ formatDate(wishlist.created_at) }}
                             </td>
                         </tr>
                         <tr v-if="wishlists.length === 0">
                             <td
                                 colspan="5"
-                                class="px-4 py-14 text-center text-muted-foreground"
+                                class="px-4 py-16 text-center text-muted-foreground"
                             >
                                 <div
-                                    class="mx-auto mb-3 flex size-14 items-center justify-center rounded-full bg-rose-50 dark:bg-rose-500/10"
+                                    class="mx-auto mb-3 flex size-16 items-center justify-center rounded-full bg-gradient-to-br from-rose-50 to-pink-100 dark:from-rose-500/10 dark:to-pink-500/10"
                                 >
-                                    <Heart class="size-7 text-rose-400" />
+                                    <Heart class="size-8 text-rose-400" />
                                 </div>
                                 No wishlist items found.
                             </td>

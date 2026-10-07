@@ -10,7 +10,10 @@ use RuntimeException;
 
 class OrderService
 {
-    public function __construct(private readonly CartService $cartService) {}
+    public function __construct(
+        private readonly CartService $cartService,
+        private readonly CouponService $couponService,
+    ) {}
 
     /**
      * Calculate the delivery charge for a given district.
@@ -35,6 +38,7 @@ class OrderService
      *     area: string,
      *     address: string,
      *     notes?: string|null,
+     *     coupon_code?: string|null,
      * }  $shipping
      *
      * @throws ValidationException
@@ -55,6 +59,7 @@ class OrderService
      *     area: string,
      *     address: string,
      *     notes?: string|null,
+     *     coupon_code?: string|null,
      * }  $shipping
      *
      * @throws ValidationException
@@ -73,6 +78,7 @@ class OrderService
      *     area: string,
      *     address: string,
      *     notes?: string|null,
+     *     coupon_code?: string|null,
      * }  $shipping
      *
      * @throws ValidationException
@@ -95,17 +101,29 @@ class OrderService
             ]);
         }
 
-        $subtotal = collect($items)->sum(
+        $subtotal = round(collect($items)->sum(
             fn (array $item): float => $item['price'] * $item['qty'],
-        );
+        ), 2);
 
         $deliveryCharge = $this->deliveryChargeForDistrict($shipping['district']);
-        $total = $subtotal + $deliveryCharge;
+        $couponCode = $this->cartService->couponCode() ?? ($shipping['coupon_code'] ?? null);
 
-        return DB::transaction(function () use ($shipping, $items, $subtotal, $deliveryCharge, $total, $paymentMethod, $statusNote): Order {
+        $order = DB::transaction(function () use ($shipping, $items, $subtotal, $deliveryCharge, $paymentMethod, $statusNote, $couponCode): Order {
+            $coupon = null;
+            $discountAmount = 0.0;
+
+            if (filled($couponCode)) {
+                $couponResult = $this->couponService->apply((string) $couponCode, $subtotal);
+                $coupon = $couponResult['coupon'];
+                $discountAmount = $couponResult['discount_amount'];
+            }
+
+            $total = max(0, round($subtotal - $discountAmount + $deliveryCharge, 2));
+
             $order = Order::create([
                 'order_number' => $this->generateOrderNumber(),
                 'user_id' => auth()->id(),
+                'coupon_id' => $coupon?->id,
                 'customer_name' => $shipping['customer_name'],
                 'phone' => $shipping['phone'],
                 'email' => $shipping['email'],
@@ -113,8 +131,10 @@ class OrderService
                 'area' => $shipping['area'],
                 'address' => $shipping['address'],
                 'notes' => $shipping['notes'] ?? null,
+                'coupon_code' => $coupon?->code,
                 'subtotal' => $subtotal,
                 'delivery_charge' => $deliveryCharge,
+                'discount_amount' => $discountAmount,
                 'total' => $total,
                 'payment_method' => $paymentMethod,
                 'payment_status' => 'pending',
@@ -141,10 +161,14 @@ class OrderService
                 'changed_by' => auth()->id(),
             ]);
 
-            $this->cartService->clear();
+            $this->cartService->clearItems();
 
             return $order;
         });
+
+        $this->cartService->clearCoupon();
+
+        return $order;
     }
 
     /**

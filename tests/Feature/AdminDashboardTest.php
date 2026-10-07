@@ -39,6 +39,8 @@ test('admins can view the analytics dashboard', function () {
                 ->where('total_revenue', 1500)
                 ->where('total_orders', 2)
                 ->where('pending_orders', 1)
+                ->where('completed_orders', 1)
+                ->where('total_products', 1)
                 ->has('average_order_value')
                 ->has('total_customers')
                 ->has('new_customers_this_month')

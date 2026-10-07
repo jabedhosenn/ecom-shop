@@ -19,6 +19,8 @@ Route::get('/products/{slug}', [ProductController::class, 'show'])->name('shop.p
 // Cart
 Route::get('/cart', [CartController::class, 'index'])->name('shop.cart');
 Route::post('/cart', [CartController::class, 'store'])->name('shop.cart.store');
+Route::post('/cart/coupon', [CartController::class, 'applyCoupon'])->name('shop.cart.coupon.apply');
+Route::delete('/cart/coupon', [CartController::class, 'removeCoupon'])->name('shop.cart.coupon.remove');
 Route::patch('/cart/{productId}', [CartController::class, 'update'])->name('shop.cart.update');
 Route::delete('/cart', [CartController::class, 'clear'])->name('shop.cart.clear');
 Route::delete('/cart/{productId}', [CartController::class, 'destroy'])->name('shop.cart.destroy');

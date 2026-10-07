@@ -40,7 +40,9 @@ function handleSearchInput(event: Event): void {
         class="sticky top-0 z-50 border-b border-gray-200 bg-white/95 backdrop-blur"
     >
         <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div class="flex h-16 items-center justify-between gap-4">
+            <div
+                class="flex h-[4.5rem] items-center justify-between gap-3 sm:gap-5"
+            >
                 <div class="flex items-center gap-2">
                     <button
                         type="button"
@@ -69,15 +71,15 @@ function handleSearchInput(event: Event): void {
                 </div>
 
                 <nav
-                    class="hidden items-center gap-1 lg:flex"
+                    class="hidden items-center gap-1.5 lg:flex"
                     aria-label="Primary"
                 >
                     <Link
                         :href="home()"
-                        class="rounded-lg px-3 py-2 text-sm font-medium transition hover:bg-gray-100"
+                        class="rounded-full px-4 py-2.5 text-sm font-semibold transition hover:bg-shop-primary-50"
                         :class="
                             isHomePage
-                                ? 'bg-gray-100 text-gray-900'
+                                ? 'bg-shop-primary-600 text-white hover:bg-shop-primary-700 hover:text-white'
                                 : 'text-gray-600 hover:text-gray-900'
                         "
                     >
@@ -85,10 +87,10 @@ function handleSearchInput(event: Event): void {
                     </Link>
                     <Link
                         :href="shop.index()"
-                        class="rounded-lg px-3 py-2 text-sm font-medium transition hover:bg-gray-100"
+                        class="rounded-full px-4 py-2.5 text-sm font-semibold transition hover:bg-shop-primary-50"
                         :class="
                             isShopPage
-                                ? 'bg-gray-100 text-gray-900'
+                                ? 'bg-shop-primary-600 text-white hover:bg-shop-primary-700 hover:text-white'
                                 : 'text-gray-600 hover:text-gray-900'
                         "
                     >
@@ -96,13 +98,13 @@ function handleSearchInput(event: Event): void {
                     </Link>
                     <a
                         href="/#categories"
-                        class="rounded-lg px-3 py-2 text-sm font-medium text-gray-600 transition hover:bg-gray-100 hover:text-gray-900"
+                        class="rounded-full px-4 py-2.5 text-sm font-semibold text-gray-600 transition hover:bg-shop-primary-50 hover:text-gray-900"
                     >
                         Categories
                     </a>
                     <a
                         href="/#bestselling"
-                        class="rounded-lg px-3 py-2 text-sm font-medium text-gray-600 transition hover:bg-gray-100 hover:text-gray-900"
+                        class="rounded-full px-4 py-2.5 text-sm font-semibold text-gray-600 transition hover:bg-shop-primary-50 hover:text-gray-900"
                     >
                         Best Selling
                     </a>
@@ -135,7 +137,7 @@ function handleSearchInput(event: Event): void {
                             type="search"
                             :value="isShopPage ? search : ''"
                             placeholder="Search for products…"
-                            class="w-full rounded-lg border border-gray-300 bg-gray-50 py-2.5 pr-4 pl-10 text-sm text-gray-900 transition placeholder:text-gray-400 focus:border-shop-primary-600 focus:bg-white focus:ring-2 focus:ring-shop-primary-600 focus:outline-none"
+                            class="w-full rounded-full border border-gray-200 bg-gray-100 py-2.5 pr-4 pl-10 text-sm text-gray-900 transition placeholder:text-gray-400 focus:border-shop-primary-600 focus:bg-white focus:ring-2 focus:ring-shop-primary-600 focus:outline-none"
                             @input="handleSearchInput"
                         />
                     </div>
@@ -242,10 +244,7 @@ function handleSearchInput(event: Event): void {
                 </div>
             </div>
 
-            <div
-                v-show="showMobileSearch"
-                class="pb-3 md:hidden"
-            >
+            <div v-show="showMobileSearch" class="pb-3 md:hidden">
                 <label for="searchMobileHeader" class="sr-only"
                     >Search products</label
                 >

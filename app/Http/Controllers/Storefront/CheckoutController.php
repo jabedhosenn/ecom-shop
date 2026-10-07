@@ -5,9 +5,11 @@ namespace App\Http\Controllers\Storefront;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Storefront\StoreCheckoutRequest;
 use App\Services\CartService;
+use App\Services\CouponService;
 use App\Services\OrderService;
 use App\Services\SslcommerzPaymentService;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
@@ -16,6 +18,7 @@ class CheckoutController extends Controller
 {
     public function __construct(
         private readonly CartService $cartService,
+        private readonly CouponService $couponService,
         private readonly OrderService $orderService,
         private readonly SslcommerzPaymentService $paymentService,
     ) {}
@@ -32,9 +35,29 @@ class CheckoutController extends Controller
         }
 
         $delivery = config('shop.delivery');
+        $subtotal = $this->cartService->subtotal();
+        $coupon = null;
+        $discountAmount = 0.0;
+        $couponError = null;
+        $couponCode = $this->cartService->couponCode();
+
+        if ($couponCode !== null) {
+            try {
+                $couponResult = $this->couponService->calculate($couponCode, $subtotal);
+                $coupon = ['code' => $couponResult['coupon']->code];
+                $discountAmount = $couponResult['discount_amount'];
+            } catch (ValidationException $exception) {
+                $this->cartService->clearCoupon();
+                $couponError = $exception->errors()['coupon_code'][0];
+            }
+        }
 
         return Inertia::render('shop/Checkout', [
             'districts' => config('shop.districts'),
+            'subtotal' => $subtotal,
+            'coupon' => $coupon,
+            'discountAmount' => $discountAmount,
+            'couponError' => $couponError,
             'deliveryCharges' => [
                 'insideDhaka' => (float) $delivery['inside_dhaka'],
                 'outsideDhaka' => (float) $delivery['outside_dhaka'],

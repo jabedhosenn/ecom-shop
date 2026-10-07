@@ -1,38 +1,52 @@
 <script setup lang="ts">
+import { Link } from '@inertiajs/vue3';
 import ShopProductCard from '@/components/shop/ShopProductCard.vue';
+import shop from '@/routes/shop';
 import type { ShopProduct } from '@/types/shop';
 
-const { id, title, description, products, background = 'white' } =
-    defineProps<{
-        id: string;
-        title: string;
-        description: string;
-        products: ShopProduct[];
-        background?: 'white' | 'gray';
-    }>();
+const {
+    id,
+    title,
+    description,
+    products,
+    background = 'white',
+} = defineProps<{
+    id: string;
+    title: string;
+    description: string;
+    products: ShopProduct[];
+    background?: 'white' | 'gray';
+}>();
 </script>
 
 <template>
     <section
         :id="id"
-        class="py-12 md:py-16 lg:py-24"
+        class="py-14 md:py-20 lg:py-24"
         :class="background === 'gray' ? 'bg-gray-100' : 'bg-white'"
     >
         <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div class="mb-8 flex items-end justify-between">
+            <div class="mb-8 flex items-end justify-between gap-4">
                 <div>
-                    <h2 class="text-2xl font-bold text-gray-900 md:text-3xl">
+                    <p
+                        class="mb-2 text-xs font-semibold tracking-[0.18em] text-shop-primary-600 uppercase"
+                    >
+                        Curated for you
+                    </p>
+                    <h2
+                        class="text-3xl font-bold tracking-tight text-gray-900 md:text-4xl"
+                    >
                         {{ title }}
                     </h2>
                     <p class="mt-2 text-sm text-gray-600 md:text-base">
                         {{ description }}
                     </p>
                 </div>
-                <a
-                    href="#"
-                    class="hidden items-center gap-1 text-sm font-medium text-shop-primary-600 hover:text-shop-primary-700 sm:inline-flex"
+                <Link
+                    :href="shop.index()"
+                    class="inline-flex shrink-0 items-center gap-2 rounded-full border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 transition hover:border-shop-primary-600 hover:text-shop-primary-700"
                 >
-                    View all
+                    View shop
                     <svg
                         class="h-4 w-4"
                         fill="none"
@@ -46,7 +60,7 @@ const { id, title, description, products, background = 'white' } =
                             d="M9 5l7 7-7 7"
                         />
                     </svg>
-                </a>
+                </Link>
             </div>
 
             <div
@@ -54,7 +68,7 @@ const { id, title, description, products, background = 'white' } =
             >
                 <ShopProductCard
                     v-for="product in products"
-                    :key="product.name"
+                    :key="product.id ?? product.slug ?? product.name"
                     :product="product"
                 />
             </div>

@@ -37,6 +37,10 @@ class HomeController extends Controller
             ),
             'newCollectionProducts' => $this->products(
                 fn ($query) => $query->where('is_featured', true)->orderByDesc('created_at'),
+                'Featured',
+            ),
+            'latestProducts' => $this->products(
+                fn ($query) => $query->orderByDesc('created_at')->orderByDesc('id'),
                 'New',
             ),
         ]);
