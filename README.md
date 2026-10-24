@@ -2,8 +2,6 @@
 
 A full-stack e-commerce web application built with **Laravel, Vue.js, and MySQL**. The project includes an online storefront, product browsing, shopping cart, checkout, order management, wishlist functionality, and an administrative dashboard.
 
-**Repository:** [github.com/jabedhosenn/ecom-shop](https://github.com/jabedhosenn/ecom-shop)
-
 ## Overview
 
 Ecom-Shop is designed to provide a complete online shopping experience for customers and a management interface for administrators. It combines Laravel's backend capabilities with a modern Vue.js frontend to manage products, orders, customers, and essential e-commerce operations.
